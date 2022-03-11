@@ -2,10 +2,9 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import hpp from "hpp";
-import JFile from "jfile";
 import dataToJson from "data-to-json";
 import rateLimit from "express-rate-limit";
-import fs from "fs";
+import { ethers, utils } from "ethers";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -13,6 +12,9 @@ const app = express();
 const port = process.env.PORT || 9000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// CONSTANTS
+const REQ_ETH_BAL = 0.15;
 
 // Middlewares: Security ****************************************************
 app.use(cors({ origin: ["http://localhost:3000"] })); // Cross-Origin
@@ -23,8 +25,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Rate limit for /api/whitelist/join route *********************************
 const apiLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  windowMs: 1 * 60 * 1000, // 1 minutes
+  max: 10, // Limit each IP to 10 requests per `window` (here, per 1 minutes)
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
@@ -32,66 +34,37 @@ const apiLimiter = rateLimit({
 // The API section **********************************************************
 app.post("/api/whitelist/join", apiLimiter, async (req, res) => {
   try {
-    const { signature, address, message } = req.body;
-    const csvFilePath = path.join(
-      __dirname,
-      "./../server",
-      "registered-wallets.csv"
-    );
+    const { signature, address, message, chainName } = req.body;
 
-    // Check if file exists
-    await fs.access(csvFilePath, fs.F_OK, async (err) => {
-      // No file exist yet
-      if (err) {
-        const genesisContent = `address,message,signature\r\n${address},"${message}",${signature}\r\n`;
-        fs.writeFile(csvFilePath, genesisContent, "utf-8", (err) => {
-          if (err) {
-            console.error(err);
-            return;
-          }
-        });
+    // 1. Verify
+    const signee = utils.verifyMessage(message, signature);
+    if (signee !== address) {
+      res.status(400).json({ status: "failed", message: "Does not match!" });
+      return;
+    }
 
-        res
-          .status(200)
-          .json({ status: "success", message: "Wallet Registered!" });
-        return;
-      }
+    // 2. Check balance
+    const provider = ethers.getDefaultProvider(chainName.toLowerCase());
+    const _balance = await provider.getBalance(address);
+    const _userBal = ethers.utils.formatEther(_balance);
+    const userBal = Number(parseFloat(`${_userBal}`).toFixed(2));
+    if (userBal < REQ_ETH_BAL) {
+      res.status(400).json({
+        status: "failed",
+        message: `Balance requirement must be above/equal to ${REQ_ETH_BAL} ETH`,
+      });
+      return;
+    }
 
-      // If file .csv already exist
-      // Check first if user have previously registered
-      const jfile = new JFile(csvFilePath);
-      const result = jfile.grep(address);
-      if (result.length > 0) {
-        res
-          .status(400)
-          .json({ status: "failed", message: "Already registered!" });
-        return;
-      }
+    // 3. Start whitelisting script here
+    // 3.1  check if address already registered
+    // 3.2  if new then proceed
 
-      // File exists, and user is not registered yet, just append to it
-      const newContent = `${address},"${message}",${signature}\r\n`;
-      await fs.appendFileSync(csvFilePath, newContent, "utf-8");
-      res
-        .status(200)
-        .json({ status: "success", message: "Wallet Registered!" });
-    });
+    // 4. Save to google spreadsheets
+
+    res.status(200).json({ status: "success", message: "NOT YET DONE......" });
   } catch (e) {
     res.status(400).json({ status: "failed", message: e.message });
-  }
-});
-
-app.get("/api/whitelisted", async (req, res) => {
-  try {
-    const dataInJSON = dataToJson
-      .csv({ filePath: "./registered-wallets.csv" })
-      .toJson();
-    const finalData = dataInJSON.shift();
-
-    res.status(200).json({ status: "success", whitelisted: dataInJSON });
-  } catch (e) {
-    res
-      .status(400)
-      .json({ status: "failed", message: "No registered users yet!" });
   }
 });
 

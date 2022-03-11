@@ -74,7 +74,7 @@ const EthersProvider = ({ children, askOnLoad = true }) => {
         await setIsConnected(false);
     };
 
-    const switchNetworkHandler = async (network = localEnv.chainId) => {
+    const switchNetworkHandler = async (network = localEnv.chainHex) => {
         try {
             await windowEth.request({
                 method: 'wallet_switchEthereumChain',
