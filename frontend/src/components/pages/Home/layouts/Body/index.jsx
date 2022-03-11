@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { GiCeremonialMask } from 'react-icons/gi';
 
 // Utils
