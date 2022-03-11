@@ -43,6 +43,8 @@ const Index = () => {
     const [mintingContractSigner, setMintingContractSigner] = useState(null);
     const [saleType, setCurrentSaleType] = useState(null);
     const [isMinting, setIsMinting] = useState(false);
+    const [maxPerMint, setMaxAmountPerMint] = useState(0);
+
     // States >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     useEffect(() => {
@@ -64,7 +66,7 @@ const Index = () => {
 
                 // Set prices.
                 const saleRound = await _mintingContractSigner.saleRound();
-                const { price, enabled, saleType } = saleRound;
+                const { price, enabled, saleType, maxAmountPerMint } = saleRound;
                 const priceInEther = ethers.utils.formatEther(price);
                 if (enabled) {
                     setMintingActive(true);
@@ -78,6 +80,7 @@ const Index = () => {
                 setUnitPriceUI(floatFixer(priceInEther, 2));
                 setPricePerMint(ethers.utils.parseEther(priceInEther));
                 setCurrentSaleType(saleType);
+                setMaxAmountPerMint(maxAmountPerMint);
 
                 const tokensLeft = (await _mintingContractSigner.tokensLeft()).toNumber();
                 if (tokensLeft === 0) {
@@ -90,6 +93,7 @@ const Index = () => {
                 const numAllowedTokens = (
                     await _mintingContractSigner.allowedTokenCount(address)
                 ).toNumber();
+                console.log('Num allowed tokens', numAllowedTokens);
                 setAllowedBuyCount(numAllowedTokens);
 
                 if (numAllowedTokens === 0) {
@@ -103,12 +107,30 @@ const Index = () => {
 
     // Handlers >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     const onIncrementHandler = () => {
-        setDefValue(defValue + 1);
+        setHasError(false);
+        if (!isConnected) return;
+        if (defValue + 1 > maxPerMint) {
+            setHasError(true);
+            setErrorMsg(`Quantity exceeds max amount per mint: ${maxPerMint}`);
+            return;
+        }
+
+        const newValue = defValue + 1;
+
+        if (newValue > allowedBuyCount) return;
+
+        setDefValue(newValue);
     };
 
     const onDecrementHandler = () => {
-        if (defValue === 0) return;
-        setDefValue(defValue - 1);
+        setHasError(false);
+        if (!isConnected) return;
+
+        let newValue = defValue - 1;
+
+        if (newValue < 1) newValue = 1;
+
+        setDefValue(newValue);
     };
 
     const callApi = async () => {
@@ -202,6 +224,9 @@ const Index = () => {
             if (errorReceived.toLowerCase().includes('active sale round is not a public round')) {
                 _errMsg = 'Public sale is not yet opened!';
             }
+            if (errorReceived.toLowerCase().includes('quantity exceeded max amount per mint')) {
+                _errMsg = 'Quantity exceeded max amount per mint';
+            }
             if (errorReceived.toLowerCase().includes('max amount was reached for this sale')) {
                 _errMsg = 'Already sold out!';
             }
@@ -235,11 +260,11 @@ const Index = () => {
                     </p>
                     <br />
                     <br />
-                    <h3>Price: {unitPriceUI} ETH/NFT</h3>
-                    <h4>
-                        Total: {unitPrice ? ethers.utils.formatEther(unitPrice.mul(defValue)) : 0}{' '}
-                        ETH
-                    </h4>
+                    <h4>Price: {unitPriceUI} ETH/NFT</h4>
+                    <h3>
+                        Total cost:{' '}
+                        {unitPrice ? ethers.utils.formatEther(unitPrice.mul(defValue)) : 0} ETH
+                    </h3>
                     <div className="d-grid gap-2 d-sm-flex justify-content-sm-center">
                         <Crementor
                             value={defValue}
