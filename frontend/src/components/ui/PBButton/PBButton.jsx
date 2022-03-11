@@ -39,7 +39,6 @@ const PBButton = ({
             return;
         }
 
-        // If link
         window.open(link, linkTarget).focus();
     };
 

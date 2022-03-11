@@ -6,7 +6,7 @@ import { EthersContext } from '../../../store/all-context-interface';
 import './Connector.scss';
 
 const Connector = ({
-    forceSwitch = true,
+    forceSwitch = false,
     network = '0x1',
     connText = 'CONNECT',
     disconnText = 'DISCONNECT',
