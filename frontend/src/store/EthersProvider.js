@@ -78,12 +78,17 @@ const EthersProvider = ({ children, askOnLoad = true }) => {
         try {
             await windowEth.request({
                 method: 'wallet_switchEthereumChain',
-                params: [{ chainId: network }],
+                params: [{ chainId: `${network}` }],
             });
         } catch (e) {
-            setMsg('Please connect to the Ethereum network', 'warning');
+            setMsg(`Please connect to the ${localEnv.chainName} network`, 'warning');
+            throw new Error(`Please connect to the ${localEnv.chainName} network`);
         }
     };
+
+    // Events >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    // If user manually changed the network, need to reload to re-initialize
+    // windowEth.on('chainChanged', (_chainId) => window.location.reload());
 
     // Ethers Context Value >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     const ethersContextValue = useMemo(

@@ -1,3 +1,4 @@
+import dotenv from "dotenv";
 import express from "express";
 import helmet from "helmet";
 import cors from "cors";
@@ -8,13 +9,20 @@ import { ethers, utils } from "ethers";
 import path from "path";
 import { fileURLToPath } from "url";
 
+import sigGenerator from "./scripts/sig-generator.js";
+
+// Defaults
 const app = express();
 const port = process.env.PORT || 9000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+dotenv.config({ path: __dirname + "/../.env" });
 
 // CONSTANTS
 const REQ_ETH_BAL = 0.15;
+
+// States
+let whitelistAPIStatus = "normal";
 
 // Middlewares: Security ****************************************************
 app.use(cors({ origin: ["http://localhost:3000"] })); // Cross-Origin
@@ -34,18 +42,24 @@ const apiLimiter = rateLimit({
 // The API section **********************************************************
 app.post("/api/whitelist/join", apiLimiter, async (req, res) => {
   try {
-    const { signature, address, message, chainName } = req.body;
+    const {
+      signature: frontendSig,
+      address: frontendAddress,
+      message,
+    } = req.body;
+    const PROVIDER = new ethers.providers.JsonRpcProvider(process.env.RPC_LINK);
 
     // 1. Verify
-    const signee = utils.verifyMessage(message, signature);
-    if (signee !== address) {
-      res.status(400).json({ status: "failed", message: "Does not match!" });
+    const signee = utils.verifyMessage(message, frontendSig);
+    if (signee !== frontendAddress) {
+      res
+        .status(400)
+        .json({ status: "failed", message: "Verification failed!" });
       return;
     }
 
     // 2. Check balance
-    const provider = ethers.getDefaultProvider(chainName.toLowerCase());
-    const _balance = await provider.getBalance(address);
+    const _balance = await PROVIDER.getBalance(frontendAddress);
     const _userBal = ethers.utils.formatEther(_balance);
     const userBal = Number(parseFloat(`${_userBal}`).toFixed(2));
     if (userBal < REQ_ETH_BAL) {
@@ -56,11 +70,39 @@ app.post("/api/whitelist/join", apiLimiter, async (req, res) => {
       return;
     }
 
-    // 3. Start whitelisting script here
-    // 3.1  check if address already registered
-    // 3.2  if new then proceed
+    // 3. Ccheck if address already registered
 
-    // 4. Save to google spreadsheets
+    // 4. Start whitelist process
+    // 4.1 Check first if someone is registering, to avoid multiple writes
+    if (whitelistAPIStatus !== "normal") {
+      res.status(400).json({
+        status: "failed",
+        message: "Server busy. Please try after a few seconds.",
+      });
+      return;
+    }
+    // 4.2  If all is good then proceed
+    whitelistAPIStatus = "busy";
+    const { address, signature } = await sigGenerator(
+      PROVIDER,
+      frontendAddress
+    );
+    if (!address || !signature) {
+      whitelistAPIStatus = "normal";
+      res.status(400).json({
+        status: "failed",
+        message: "Something went wrong during the process.",
+      });
+      return;
+    }
+
+    // 5. Save file
+    console.log(address, signature);
+
+    // Revert with 1.5sec buffer
+    setTimeout(() => {
+      whitelistAPIStatus = "normal";
+    }, 1500);
 
     res.status(200).json({ status: "success", message: "NOT YET DONE......" });
   } catch (e) {

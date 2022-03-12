@@ -23,9 +23,9 @@
   },
   "scripts": {
     "start": "concurrently --kill-others-on-fail \"yarn start:server\" \"yarn start:client\" ",
-    "start:client": "react-scripts start",
     "start:server": "cd ./../server && yarn start",
-    "build": "react-scripts build",
+    "start:client": "cp ${ENV:-'./../.env'} .env && react-scripts start",
+    "build": "cp ${ENV:-'./../.env'} .env && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
