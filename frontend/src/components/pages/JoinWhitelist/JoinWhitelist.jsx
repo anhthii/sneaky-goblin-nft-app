@@ -8,16 +8,14 @@ import PBButton from '../../ui/PBButton/PBButton';
 // Utils
 import useSignature from '../../../helpers/hooks/useSignature';
 import { EthersContext, MsgNetContext } from '../../../store/all-context-interface';
-import { getAllLocalEnv } from '../../../helpers/dev/general-helpers';
 
 // Styles
 import './JoinWhitelist.scss';
 
 const JoinWhitelist = () => {
-    const localEnv = getAllLocalEnv();
     const { setMsg } = useContext(MsgNetContext);
     const { sigData, signMessage } = useSignature();
-    const { ethersProvider, isConnected, chainId } = useContext(EthersContext);
+    const { ethersProvider, isConnected } = useContext(EthersContext);
 
     // States >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     const [processing, setProcessing] = useState(false);
@@ -61,6 +59,8 @@ const JoinWhitelist = () => {
 
     // Helpers >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     const signMsgHelper = async () => {
+        if (processing) return;
+
         if (!isConnected) {
             setMsg('Please connect your wallet!', 'warning');
             return;

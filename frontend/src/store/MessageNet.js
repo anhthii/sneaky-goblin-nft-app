@@ -27,7 +27,7 @@ const MessageNet = ({ children }) => {
         () => ({
             setMsg: setMsgHandler,
         }),
-        [showMessage, messageData]
+        [showMessage, messageData, setMsgHandler]
     );
 
     return (

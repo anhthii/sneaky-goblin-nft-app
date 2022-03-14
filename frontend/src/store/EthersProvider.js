@@ -29,7 +29,7 @@ const EthersProvider = ({ children, askOnLoad = true }) => {
             // If true then ask to change to Eth chain
             if (askOnLoad) {
                 (async () => {
-                    await switchNetworkHandler();
+                    await switchNetworkHandler('onLoad');
                 })();
             }
         } else {
@@ -74,15 +74,17 @@ const EthersProvider = ({ children, askOnLoad = true }) => {
         await setIsConnected(false);
     };
 
-    const switchNetworkHandler = async (network = localEnv.chainHex) => {
+    const switchNetworkHandler = async (source = 'components', network = localEnv.chainHex) => {
         try {
             await windowEth.request({
                 method: 'wallet_switchEthereumChain',
                 params: [{ chainId: `${network}` }],
             });
         } catch (e) {
+            if (source === 'components') {
+                throw new Error(`Please connect to the ${localEnv.chainName} network`);
+            }
             setMsg(`Please connect to the ${localEnv.chainName} network`, 'warning');
-            throw new Error(`Please connect to the ${localEnv.chainName} network`);
         }
     };
 
@@ -106,7 +108,18 @@ const EthersProvider = ({ children, askOnLoad = true }) => {
                 switchNetwork: switchNetworkHandler,
             },
         }),
-        [ethers, web3Modal, userAddress, chainId, provider, signer, isConnected]
+        [
+            ethers,
+            web3Modal,
+            userAddress,
+            chainId,
+            provider,
+            signer,
+            isConnected,
+            onConnectHandler,
+            onDisconnectHandler,
+            switchNetworkHandler,
+        ]
     );
 
     return <EthersContext.Provider value={ethersContextValue}>{children}</EthersContext.Provider>;

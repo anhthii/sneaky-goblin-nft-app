@@ -3,13 +3,20 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import hpp from "hpp";
-import dataToJson from "data-to-json";
 import rateLimit from "express-rate-limit";
 import { ethers, utils } from "ethers";
 import path from "path";
 import { fileURLToPath } from "url";
 
+// For generating whitelist
 import sigGenerator from "./scripts/sig-generator.js";
+
+// Airtable API
+import {
+  ATCreate,
+  ATCheckIfExist,
+  ATGetAllRecords,
+} from "./utils/airtable/api.js";
 
 // Defaults
 const app = express();
@@ -70,10 +77,7 @@ app.post("/api/whitelist/join", apiLimiter, async (req, res) => {
       return;
     }
 
-    // 3. Ccheck if address already registered
-
-    // 4. Start whitelist process
-    // 4.1 Check first if someone is registering, to avoid multiple writes
+    // 3. Check first if someone is registering, to avoid multiple writes
     if (whitelistAPIStatus !== "normal") {
       res.status(400).json({
         status: "failed",
@@ -81,8 +85,22 @@ app.post("/api/whitelist/join", apiLimiter, async (req, res) => {
       });
       return;
     }
-    // 4.2  If all is good then proceed
+
+    // 4. Set to busy
     whitelistAPIStatus = "busy";
+
+    // 5. Check first if address already registered previously
+    const _records = await ATCheckIfExist(frontendAddress);
+    if (_records.length > 0) {
+      whitelistAPIStatus = "normal";
+      res.status(400).json({
+        status: "failed",
+        message: "Already registered",
+      });
+      return;
+    }
+
+    // 6. Start whitelist process
     const { address, signature } = await sigGenerator(
       PROVIDER,
       frontendAddress
@@ -96,18 +114,31 @@ app.post("/api/whitelist/join", apiLimiter, async (req, res) => {
       return;
     }
 
-    // 5. Save file
-    console.log(address, signature);
+    // 7. Save to Airtable
+    const { status: _s, message: _m } = await ATCreate({ address, signature });
+    if (_s !== "success") {
+      whitelistAPIStatus = "normal";
+      res.status(400).json({ status: "failed", message: _m });
+      return;
+    }
 
-    // Revert with 1.5sec buffer
+    // 8. Revert with 1.5sec buffer
     setTimeout(() => {
       whitelistAPIStatus = "normal";
     }, 1500);
 
-    res.status(200).json({ status: "success", message: "NOT YET DONE......" });
+    res
+      .status(200)
+      .json({ status: "success", message: "Successfully Registered!" });
   } catch (e) {
+    console.log(e);
     res.status(400).json({ status: "failed", message: e.message });
   }
+});
+
+app.get("/api/whitelisted/all", async (req, res) => {
+  const _records = await ATGetAllRecords();
+  res.status(200).json({ whitelisted: _records });
 });
 
 // The static section *******************************************************
