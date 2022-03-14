@@ -1,12 +1,19 @@
+import dotenv from "dotenv";
 import Airtable from "airtable";
+import path from "path";
+import { fileURLToPath } from "url";
 
-// Setting
-const _baseTableName = "Whitelisted";
-const _base = new Airtable({ apiKey: "key1EvDV5ABKQESES" }).base(
-  "appDnlLD88YhTEvYR"
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: __dirname + "/../../../.env" });
+
+// AirTable Setting >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+const _baseTableName = process.env.AIRTABLE_NAME;
+const _base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
+  process.env.AIRTABLE_ID
 );
 
-// APIs
+// APIs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 export const ATCreate = async (_payload) => {
   try {
     const res = await _base(_baseTableName).create([
