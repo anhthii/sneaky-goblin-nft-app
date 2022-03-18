@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { GiCeremonialMask } from 'react-icons/gi';
 
 // Utils
-import { MsgNetContext, EthersContext } from '../../../../../store/all-context-interface';
+import { EthersContext } from '../../../../../store/all-context-interface';
 import { getAllLocalEnv, floatFixer } from '../../../../../helpers/dev/general-helpers';
 
 // Contract related
@@ -24,8 +24,6 @@ const SALE_TYPE = {
 
 const Index = () => {
     const localEnv = getAllLocalEnv();
-
-    const { setMsg } = useContext(MsgNetContext);
     const { ethers, address, provider, chainId, signer, isConnected } = useContext(EthersContext);
 
     // UI states
@@ -39,13 +37,12 @@ const Index = () => {
     const [allowedBuyCount, setAllowedBuyCount] = useState(0);
     const [isMintingActive, setMintingActive] = useState(false);
     const [salesClosedMsg, setSalesClosedMsg] = useState('');
-
-    // Contract states
-    const [nftContractSigner, setNftContractSigner] = useState(null);
-    const [mintingContractSigner, setMintingContractSigner] = useState(null);
     const [saleType, setCurrentSaleType] = useState(null);
     const [isMinting, setIsMinting] = useState(false);
     const [maxPerMint, setMaxAmountPerMint] = useState(0);
+    // Contract states
+    const [nftContractSigner, setNftContractSigner] = useState(null);
+    const [mintingContractSigner, setMintingContractSigner] = useState(null);
 
     // States >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -59,6 +56,7 @@ const Index = () => {
                     signer
                 );
                 setNftContractSigner(_nftContractSigner);
+                // Minting Contract
                 const _mintingContractSigner = new ethers.Contract(
                     localEnv.mintingContract,
                     MintingRouter.abi,
@@ -67,16 +65,15 @@ const Index = () => {
                 setMintingContractSigner(_mintingContractSigner);
 
                 // Set prices.
-                const saleRound = await _mintingContractSigner.saleRound();
-                const { price, enabled, saleType, maxAmountPerMint } = saleRound;
-                const priceInEther = ethers.utils.formatEther(price);
-                if (enabled) {
-                    setMintingActive(true);
-                } else {
+                const { price, enabled, saleType, maxAmountPerMint } =
+                    await _mintingContractSigner.saleRound();
+                if (!enabled) {
                     setMintingActive(false);
                     setSalesClosedMsg('Sales closed.');
                     return;
                 }
+                setMintingActive(true);
+                const priceInEther = ethers.utils.formatEther(price);
 
                 setUnitPrice(price);
                 setUnitPriceUI(floatFixer(priceInEther, 2));
@@ -84,6 +81,7 @@ const Index = () => {
                 setCurrentSaleType(saleType);
                 setMaxAmountPerMint(maxAmountPerMint);
 
+                // Check how many tokens are left for current sale
                 const tokensLeft = (await _mintingContractSigner.tokensLeft()).toNumber();
                 if (tokensLeft === 0) {
                     setMintingActive(false);
@@ -95,7 +93,6 @@ const Index = () => {
                 const numAllowedTokens = (
                     await _mintingContractSigner.allowedTokenCount(address)
                 ).toNumber();
-                console.log('Num allowed tokens', numAllowedTokens);
                 setAllowedBuyCount(numAllowedTokens);
 
                 if (numAllowedTokens === 0) {
@@ -160,12 +157,6 @@ const Index = () => {
 
     const onClickMintHandler = async () => {
         setHasError(false);
-        // Avoid contracts errors
-        if (defValue < 1) {
-            setHasError(true);
-            setErrorMsg('Quantity should be greater than 0!');
-            return;
-        }
 
         // Check balance
         const balance = await getBalance();
@@ -180,7 +171,6 @@ const Index = () => {
         try {
             let receipt;
             if (isWhiteListRound()) {
-                console.log('whitelist round');
                 const sig = getWhitelistSigHandler(address);
                 if (sig === null) {
                     setHasError(true);
@@ -199,8 +189,6 @@ const Index = () => {
                 setIsMinting(true);
                 receipt = await transaction.wait();
             } else {
-                console.log('public round');
-
                 const transaction = await mintingContractSigner.publicMint(address, defValue, {
                     value: pricePerMint.mul(defValue),
                 });
@@ -209,7 +197,6 @@ const Index = () => {
             }
 
             if (receipt) {
-                console.log('receipt', receipt);
                 setHasError(true);
                 setIsMinting(false);
                 setErrorMsg('🎉 Successfully minted!');

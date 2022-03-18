@@ -10,7 +10,7 @@ export const getAllLocalEnv = () => {
         mintingContract: process.env.REACT_APP_MINTING_CONTRACT,
         nftContract: process.env.REACT_APP_NFT_CONTRACT,
         chainHex: process.env.REACT_APP_CHAIN_HEX,
-        chainDec: process.env.REACT_APP_CHAIN_DEC,
+        chainDec: process.env.REACT_APP_CHAIN_DECIMAL,
         chainName: process.env.REACT_APP_CHAIN_NAME,
     };
 };
