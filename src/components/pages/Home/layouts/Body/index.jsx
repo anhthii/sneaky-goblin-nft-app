@@ -1,5 +1,4 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { GiCeremonialMask } from 'react-icons/gi';
 
 // Utils
 import { EthersContext } from '../../../../../store/all-context-interface';
@@ -11,10 +10,12 @@ import NFT from '../../../../../data/abis/NFT.json';
 import WHITELIST_SIGNATURES from '../../../../../data/whitelists/ROUND-1-WHITELIST.json';
 
 // Components
-import Crementor from '../../../../ui/Crementor/Crementor';
 import PBButton from '../../../../ui/PBButton/PBButton';
+import Floater from '../../../../ui/Floater/Floater';
 
 // Styles & Assets
+import sgNftBg from '../../../../../assets/imgs/sg-bg-nfts.svg';
+import sgTextLogoBg from '../../../../../assets/imgs/sg-bg-logo.svg';
 import './Body.scss';
 
 const SALE_TYPE = {
@@ -39,7 +40,7 @@ const Index = () => {
     const [salesClosedMsg, setSalesClosedMsg] = useState('');
     const [saleType, setCurrentSaleType] = useState(null);
     const [isMinting, setIsMinting] = useState(false);
-    const [maxPerMint, setMaxAmountPerMint] = useState(0);
+    const [maxPerMint, setMaxPerMint] = useState(0);
     // Contract states
     const [nftContractSigner, setNftContractSigner] = useState(null);
     const [mintingContractSigner, setMintingContractSigner] = useState(null);
@@ -48,6 +49,7 @@ const Index = () => {
 
     useEffect(() => {
         if (isConnected) {
+            setHasError(false);
             (async () => {
                 // NFT Contract
                 const _nftContractSigner = new ethers.Contract(
@@ -79,7 +81,7 @@ const Index = () => {
                 setUnitPriceUI(floatFixer(priceInEther, 2));
                 setPricePerMint(ethers.utils.parseEther(priceInEther));
                 setCurrentSaleType(saleType);
-                setMaxAmountPerMint(maxAmountPerMint);
+                setMaxPerMint(maxAmountPerMint);
 
                 // Check how many tokens are left for current sale
                 const tokensLeft = (await _mintingContractSigner.tokensLeft()).toNumber();
@@ -134,15 +136,15 @@ const Index = () => {
 
     const displaySaleRoundText = () => {
         if (!isMintingActive) {
-            return 'No sale is available at this moment!';
+            return 'NO ACTIVE SALE';
         }
 
         if (saleType === SALE_TYPE.WHITELIST) {
-            return 'Whitelist sale is going on!';
+            return 'PRE-SALE';
         }
 
         if (saleType === SALE_TYPE.PUBLIC) {
-            return 'Public sale is going on!';
+            return 'PUBLIC SALE';
         }
     };
 
@@ -156,7 +158,14 @@ const Index = () => {
     };
 
     const onClickMintHandler = async () => {
+        console.log('check');
         setHasError(false);
+
+        if (!isConnected) {
+            setHasError(true);
+            setErrorMsg('Please connect your wallet!');
+            return;
+        }
 
         // Check balance
         const balance = await getBalance();
@@ -232,62 +241,107 @@ const Index = () => {
     };
 
     return (
-        <div className="_body">
-            <div className="px-4 py-5 my-5 text-center">
-                <h1 className="display-5 fw-bold" style={{ color: '#1c1c1c' }}>
-                    Sneaky Goblins Frontend
-                </h1>
-                <div className="col-lg-6 mx-auto">
-                    <p className="lead mb-4" style={{ color: '#121111' }}>
-                        {displaySaleRoundText()}
-                    </p>
-                    <br />
-                    <br />
-                    <h4>Price: {unitPriceUI} ETH/NFT</h4>
-                    <h3>
-                        Total cost:{' '}
-                        {unitPrice ? ethers.utils.formatEther(unitPrice.mul(defValue)) : 0} ETH
-                    </h3>
-                    <div className="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                        <Crementor
-                            value={defValue}
-                            bgColor="#2b3b5e"
-                            lineColor="#818181"
-                            onIncrement={onIncrementHandler}
-                            onDecrement={onDecrementHandler}
-                        />
-                    </div>
-                    <br />
-                    <div className="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                        {isConnected && isMintingActive && (
-                            <PBButton
-                                method={onClickMintHandler}
-                                text="mint"
-                                textSpace={1}
-                                textWeight={700}
-                                bgColor="#2b3b5dd9"
-                                icon={<GiCeremonialMask size={22} />}
-                            />
-                        )}
-                    </div>
-                    {hasError && isConnected && (
-                        <div className="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                            <div className="error-wrap">
-                                <span>{errorMsg}</span>
+        <div className="_body container-fluid">
+            <div className="row">
+                <div className="container">
+                    <div className="row">
+                        {/*<div className="col mx-auto">*/}
+                        {/*    <p id="SGLogo">SneakyGoblins</p>*/}
+                        {/*</div>*/}
+                        <div className="col mx-auto">
+                            <div className="sg-text-bg-logo-wrapper">
+                                <img src={sgTextLogoBg} alt="" />
                             </div>
                         </div>
-                    )}
-                    {isMinting && (
-                        <div className="mt-2">
-                            <div className="spinner-border text-primary" role="status">
-                                {/* <span className="sr-only">Loading...</span> */}
+                    </div>
+                </div>
+
+                <div className="container">
+                    <div className="row">
+                        <div className="col mx-auto">
+                            <div className="sg-nft-bg-wrapper">
+                                <img src={sgNftBg} alt="" />
                             </div>
-                            Minting
                         </div>
-                    )}
-                    <br />
+                    </div>
+                </div>
+
+                <div className="container">
+                    <div className="row">
+                        <div className="mint-box-wrapper">
+                            <div className="row">
+                                <div className="col-8">
+                                    <p className="mint-box-title">SNEAKY GOBLINS</p>
+                                </div>
+                                <div className="col-4">
+                                    <p className="mint-box-remaining-data">0/0000</p>
+                                </div>
+                            </div>
+                            <div className="row">
+                                <div className="col-6">
+                                    <p className="mint-box-sub-sale">
+                                        {isConnected
+                                            ? displaySaleRoundText()
+                                            : 'PLEASE CONNECT WALLET'}
+                                    </p>
+                                </div>
+                                <div className="col-6">
+                                    <p className="mint-box-sub-remaining">REMAINING</p>
+                                </div>
+                            </div>
+                            <br />
+                            <div className="row g-0">
+                                <div className="col-7">
+                                    <input type="number" placeholder="1" value={defValue} />
+                                </div>
+                                <div className="col-2">
+                                    <div className="input-max">
+                                        <span>{maxPerMint} MAX</span>
+                                    </div>
+                                </div>
+                                <div className="col-3">
+                                    <div className="input-eth">
+                                        <span>
+                                            {unitPrice
+                                                ? ethers.utils.formatEther(unitPrice.mul(defValue))
+                                                : 0}{' '}
+                                            ETH
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="row">
+                                <div className="mint-button-wrapper">
+                                    <PBButton
+                                        method={onClickMintHandler}
+                                        text="MINT"
+                                        textColor="black"
+                                        textSpace={1}
+                                        textWeight={700}
+                                        bgColor="#00C555"
+                                        hoverBgColor="#15ad57"
+                                        lineColor="#FFC748"
+                                        hoverLineColor="#FFC748"
+                                        curve={3}
+                                        height={70}
+                                    />
+                                </div>
+                            </div>
+                            {hasError && (
+                                <div className="row">
+                                    <div className="col">
+                                        <p className="error-msg">{errorMsg}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <div id="OverlayTopFade" />
+            <div id="OverlayMiddleFade" />
+            <div id="OverlayBottomFade" />
 
             <br />
             <br />

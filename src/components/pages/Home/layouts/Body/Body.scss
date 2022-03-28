@@ -15,4 +15,178 @@
     position: relative;
     top: -1px;
   }
+
+  & .sg-text-bg-logo-wrapper {
+    width: 82%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    margin: 171px auto 0;
+
+    & img {
+      width: 100%;
+    }
+  }
+
+  & .sg-nft-bg-wrapper {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    margin: -10px auto 0;
+    width: 100%;
+
+    & img {
+      width: 100%;
+    }
+  }
+
+  & .mint-box-wrapper {
+    position: relative;
+    z-index: 900;
+    margin: 0 auto;
+    padding: 54px;
+    border-radius: 25px;
+    top: 253px;
+    height: 386px;
+    width: 708px;
+    background-size: cover;
+    background: #1b1c1b url("./../../../../../assets/imgs/overlay-box.png") 50% 55% no-repeat;
+
+    & .mint-box-title {
+      font-family: 'Rubik-Dirt';
+      font-style: normal;
+      font-weight: 400;
+      font-size: 35px;
+      line-height: 30px;
+      text-transform: uppercase;
+      color: #ECECEC;
+    }
+    & .mint-box-remaining-data, & .mint-box-sub-sale, & .mint-box-sub-remaining {
+      font-family: 'Outfit';
+      font-style: normal;
+      font-weight: 600;
+      line-height: 28px;
+    }
+    & .mint-box-remaining-data {
+      font-size: 22px;
+      color: #FFFFFF;
+      text-align: right;
+    }
+    & .mint-box-sub-sale, & .mint-box-sub-remaining {
+      color: #9A9890;
+      font-size: 16px;
+      margin-top: -12px
+    }
+    & .mint-box-sub-remaining {
+      text-align: right;
+    }
+
+    & .mint-button-wrapper {
+      margin-top: 26px;
+    }
+    & input {
+      border: none;
+      height: 68px;
+      background: none;
+      font-size: 1.8em;
+      color: white;
+      border: 2px solid white;
+      padding-left: 26px;
+      border-right: 0px;
+      width: 100%;
+      border-top-left-radius: 3px;
+      border-bottom-left-radius: 3px;
+
+      &:focus {
+        outline: none;
+      }
+    }
+    & .input-max {
+      border: 2px solid white;
+      border-left: 0px;
+      height: 68px;
+      border-right: 0px;
+      color: rgba(154, 152, 144, 0.3);
+      text-align: center;
+      font-family: 'Outfit';
+      font-style: normal;
+      font-weight: 600;
+      font-size: 16px;
+      line-height: 20px;
+      text-transform: uppercase;
+      & span {
+        position: relative;
+        top: 21px;
+      }
+    }
+    & .input-eth {
+      border: 2px solid white;
+      height: 68px;
+      border-top-right-radius: 3px;
+      border-bottom-right-radius: 3px;
+      text-align: center;
+      font-family: 'Outfit';
+      font-style: normal;
+      font-weight: 600;
+      font-size: 22px;
+      line-height: 28px;
+      color: #FFFFFF;
+      & span {
+        position: relative;
+        top: 17px;
+      }
+    }
+
+    & .error-msg {
+      color: #6f6d67;
+      text-align: center;
+      margin-top: 10px;
+      font-size: .9em;
+    }
+  }
+
+  & #OverlayTopFade {
+    position: fixed;
+    top: 0px;
+    height: 370px;
+    width: 100%;
+    z-index: 500;
+    background: linear-gradient(180deg, rgb(20 21 20 / 0%) 0%, #141514 100%);
+    transform: rotate(-180deg);
+    left: 0;
+  }
+  & #OverlayMiddleFade {
+    position: fixed;
+    bottom: 0px;
+    height: 100vh;
+    width: 100%;
+    z-index: 400;
+    background: #14151480;
+  }
+  & #OverlayBottomFade {
+    position: fixed;
+    bottom: 0px;
+    height: 15vh;
+    width: 100%;
+    z-index: 300;
+    transform: rotate(180deg);
+    left: 0;
+    background: #141514;
+    box-shadow: 0 29px 64px 60px #141514;
+  }
+
+  //& #SGLogo {
+  //  font-family: "Wolf's Bane II";
+  //  font-style: normal;
+  //  font-weight: 400;
+  //  font-size: 400px;
+  //  line-height: 40px;
+  //  background: linear-gradient(270deg, rgba(255, 255, 255, 0) -8.84%, rgba(255, 255, 255, 0.2) 48.43%, rgba(255, 255, 255, 0) 108.58%);
+  //  -webkit-background-clip: text;
+  //  -webkit-text-fill-color: transparent;
+  //  background-clip: text;
+  //  text-fill-color: transparent;
+  //}
 }

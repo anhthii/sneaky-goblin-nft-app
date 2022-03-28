@@ -15,12 +15,13 @@ const Connector = ({
     hoverLineColor = '#dae7da',
     lineSize = 1,
     curve = 23,
-    textSpace = 2,
+    textSpace = 0,
     textSize = 1.3,
-    font = 'Helvetica',
+    font = 'Outfit',
     textColor = 'white',
-    textWeight = 700,
-    height = 12,
+    textWeight = 600,
+    padd = '17px 34px 17px 34px',
+    height = 70,
     width = 210,
 }) => {
     const { ethersProvider } = useContext(EthersContext);
@@ -38,7 +39,8 @@ const Connector = ({
             fontSize: `${textSize}em`,
             fontFamily: `${font}`,
             fontWeight: textWeight,
-            padding: `${height}px 0px`,
+            padding: `${padd}`,
+            height: `${height}px`,
             color: textColor,
         });
     }, []);

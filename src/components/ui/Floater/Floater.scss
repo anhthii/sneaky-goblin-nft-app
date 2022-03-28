@@ -1,0 +1,11 @@
+._floater {
+  opacity: 1;
+
+  & .modal-header {
+    border-bottom: revert !important;
+  }
+
+  &.modal-90w {
+    width: 90%;
+  }
+}
