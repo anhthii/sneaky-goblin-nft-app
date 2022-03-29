@@ -1,29 +1,29 @@
 import React, { useState, useContext, useEffect } from 'react';
 
 // Utils
-import { EthersContext } from '../../../../../store/all-context-interface';
-import { getAllLocalEnv, floatFixer } from '../../../../../helpers/dev/general-helpers';
+import { EthersContext } from '../../../store/all-context-interface';
+import { getAllLocalEnv, floatFixer } from '../../../helpers/dev/general-helpers';
 
 // Contract related
-import MintingRouter from '../../../../../data/abis/MintingRouter.json';
-import NFT from '../../../../../data/abis/NFT.json';
-import WHITELIST_SIGNATURES from '../../../../../data/whitelists/ROUND-1-WHITELIST.json';
+import MintingRouter from '../../../data/abis/MintingRouter.json';
+import NFT from '../../../data/abis/NFT.json';
+import WHITELIST_SIGNATURES from '../../../data/whitelists/ROUND-1-WHITELIST.json';
 
 // Components
-import PBButton from '../../../../ui/PBButton/PBButton';
-import Floater from '../../../../ui/Floater/Floater';
+import PBButton from '../../ui/PBButton/PBButton';
+import Floater from '../../ui/Floater/Floater';
 
 // Styles & Assets
-import sgNftBg from '../../../../../assets/imgs/sg-bg-nfts.svg';
-import sgTextLogoBg from '../../../../../assets/imgs/sg-bg-logo.svg';
-import './Body.scss';
+import sgNftBg from '../../../assets/imgs/sg-bg-nfts.svg';
+import sgTextLogoBg from '../../../assets/imgs/sg-bg-logo.svg';
+import './Minting.scss';
 
 const SALE_TYPE = {
     WHITELIST: 0,
     PUBLIC: 1,
 };
 
-const Index = () => {
+const Mintng = () => {
     const localEnv = getAllLocalEnv();
     const { ethers, address, provider, chainId, signer, isConnected } = useContext(EthersContext);
 
@@ -241,7 +241,7 @@ const Index = () => {
     };
 
     return (
-        <div className="_body container-fluid">
+        <div className="_minting container-fluid">
             <div className="row">
                 <div className="container">
                     <div className="row">
@@ -275,6 +275,9 @@ const Index = () => {
                                 </div>
                                 <div className="col-4">
                                     <p className="mint-box-remaining-data">0/0000</p>
+                                    <p className="mint-box-sub-remaining d-md-block d-lg-none">
+                                        REMAINING
+                                    </p>
                                 </div>
                             </div>
                             <div className="row">
@@ -286,7 +289,9 @@ const Index = () => {
                                     </p>
                                 </div>
                                 <div className="col-6">
-                                    <p className="mint-box-sub-remaining">REMAINING</p>
+                                    <p className="mint-box-sub-remaining d-none d-lg-block">
+                                        REMAINING
+                                    </p>
                                 </div>
                             </div>
                             <br />
@@ -352,4 +357,4 @@ const Index = () => {
     );
 };
 
-export default Index;
+export default Mintng;

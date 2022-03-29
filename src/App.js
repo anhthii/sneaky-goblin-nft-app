@@ -6,6 +6,8 @@ import GoogleFontLoader from 'react-google-font-loader';
 import EthersProvider from './store/EthersProvider';
 import MessageNet from './store/MessageNet';
 import HomePage from './components/pages/Home/Home';
+import Minting from './components/pages/Minting/Minting';
+import Navigation from './components/pages/layouts/Navigation';
 
 // Styles & Fonts
 import fontLists from './data/fonts/google/fontList';
@@ -18,8 +20,10 @@ function App() {
                 <GoogleFontLoader fonts={fontLists} />
 
                 <Router>
+                    <Navigation />
                     <Routes>
                         <Route path="/" element={<HomePage />} />
+                        <Route path="/mint" element={<Minting />} />
                     </Routes>
                 </Router>
             </EthersProvider>
