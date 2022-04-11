@@ -1,0 +1,66 @@
+.modal-dialog._floater {
+
+  & .btn-close {
+    background: transparent url("./../../../assets/imgs/close-btn.svg") center/1em auto no-repeat;
+    width: 40px;
+    background-size: 38px;
+    height: 40px;
+    position: relative;
+    top: 58px;
+    right: 44px;
+    z-index: 9000;
+    opacity: 1 !important;
+  }
+
+  & .modal-content {
+    background-color: rgb(20 21 20 / 77%);
+    backdrop-filter: blur(12px);
+    margin-top: 146px;
+
+    & .modal-body {
+      padding: 0px !important;
+    }
+  }
+}
+
+._floater {
+
+  & .modal-header {
+    border-bottom: revert !important;
+    height: 0px;
+    padding: 0px !important;
+  }
+
+  &.modal-40w {
+    max-width: 40%;
+  }
+  &.modal-50w {
+    max-width: 50%;
+  }
+  &.modal-60w {
+    max-width: 60%;
+  }
+  &.modal-70w {
+    max-width: 70%;
+  }
+  &.modal-80w {
+    max-width: 80%;
+  }
+  &.modal-90w {
+    max-width: 90%;
+  }
+}
+
+
+@media only screen and (max-width: 992px) {
+  ._floater {
+    &.modal-40w,
+    &.modal-50w,
+    &.modal-60w,
+    &.modal-70w,
+    &.modal-80w,
+    &.modal-90w {
+      max-width: 96% !important;
+    }
+  }
+}

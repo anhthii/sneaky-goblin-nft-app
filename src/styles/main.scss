@@ -1,0 +1,34 @@
+@import "node_modules/bootstrap/scss/bootstrap";
+
+@font-face {
+  font-family: 'Rubik-Dirt';
+  font-style: normal;
+  src: local('Rubik-Dirt'), url(../data/fonts/custom/Rubik-Dirt-Regular.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: "Wolf's Bane II";
+  font-style: normal;
+  src: local("Wolf's Bane II"), url(../data/fonts/custom/wolfsbane2ii.ttf) format('truetype');
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  background: #141514;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  monospace;
+}
+
+#WEB3_CONNECT_MODAL_ID {
+  position: relative;
+  z-index: 9000;
+}
