@@ -22,10 +22,12 @@ const EthersProvider = ({ children, askOnLoad = true }) => {
     const [chainId, setChainId] = useState(null);
     const [signer, setSigner] = useState(null);
     const [provider, setProvider] = useState(null);
+    const [isMetamaskInstalled, setIsMetamaskInstalled] = useState(false);
 
     // Effects >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     useEffect(() => {
         if (windowEth) {
+            setIsMetamaskInstalled(true);
             // If true then ask to change to Eth chain
             if (askOnLoad) {
                 (async () => {
@@ -33,7 +35,8 @@ const EthersProvider = ({ children, askOnLoad = true }) => {
                 })();
             }
         } else {
-            setMsg('Please consider installing Metamask.', 'warning');
+            setIsMetamaskInstalled(false);
+            // setMsg('Please consider installing Metamask.', 'warning');
         }
     }, []);
 
@@ -60,7 +63,8 @@ const EthersProvider = ({ children, askOnLoad = true }) => {
             if (errorMsg.includes('user rejected')) {
                 setMsg('Wallet connection was cancelled!', 'warning');
             } else {
-                setMsg(message, 'warning');
+                console.log('error: ', message);
+                // setMsg(message, 'warning');
             }
 
             return null;
@@ -102,6 +106,7 @@ const EthersProvider = ({ children, askOnLoad = true }) => {
             provider,
             signer,
             isConnected,
+            isMetamaskInstalled,
             ethersProvider: {
                 connect: onConnectHandler,
                 disconnect: onDisconnectHandler,
@@ -116,6 +121,7 @@ const EthersProvider = ({ children, askOnLoad = true }) => {
             provider,
             signer,
             isConnected,
+            isMetamaskInstalled,
             onConnectHandler,
             onDisconnectHandler,
             switchNetworkHandler,

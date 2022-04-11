@@ -1,13 +1,16 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import GoogleFontLoader from 'react-google-font-loader';
+import { HelmetProvider } from 'react-helmet-async';
 
 // Components
 import EthersProvider from './store/EthersProvider';
 import MessageNet from './store/MessageNet';
 import HomePage from './components/pages/Home/Home';
 import Minting from './components/pages/Minting/Minting';
-import Navigation from './components/pages/layouts/Navigation';
+import Staking from './components/pages/Staking/Staking';
+import Navigation from './components/pages/_layouts/Navigation';
+import NotFound from './components/pages/NotFound/NotFound';
 
 // Styles & Fonts
 import fontLists from './data/fonts/google/fontList';
@@ -15,19 +18,23 @@ import './styles/main.scss';
 
 function App() {
     return (
-        <MessageNet>
-            <EthersProvider askOnLoad={false}>
-                <GoogleFontLoader fonts={fontLists} />
+        <HelmetProvider>
+            <MessageNet>
+                <EthersProvider>
+                    <GoogleFontLoader fonts={fontLists} />
 
-                <Router>
-                    <Navigation />
-                    <Routes>
-                        <Route path="/" element={<HomePage />} />
-                        <Route path="/mint" element={<Minting />} />
-                    </Routes>
-                </Router>
-            </EthersProvider>
-        </MessageNet>
+                    <Router>
+                        <Navigation />
+                        <Routes>
+                            <Route path="/" element={<HomePage />} />
+                            <Route path="/mint" element={<Minting />} />
+                            <Route path="/stake" element={<Staking />} />
+                            <Route path="*" element={<NotFound />} />
+                        </Routes>
+                    </Router>
+                </EthersProvider>
+            </MessageNet>
+        </HelmetProvider>
     );
 }
 

@@ -4,7 +4,7 @@ import { Modal } from 'react-bootstrap';
 // Style
 import './Floater.scss';
 
-const Floater = ({ show, onHide, children, width = 40 }) => {
+const Floater = ({ show, onHide, children, width = 40, cn = '' }) => {
     const { Header, Body } = Modal;
 
     return (
@@ -13,7 +13,7 @@ const Floater = ({ show, onHide, children, width = 40 }) => {
             onHide={onHide}
             size="lg"
             aria-labelledby="contained-modal-title-vcenter"
-            dialogClassName={`_floater modal-${width}w`}
+            dialogClassName={`_floater modal-${width}w ${cn}`}
             centered
         >
             <Header closeButton />

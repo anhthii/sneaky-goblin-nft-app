@@ -1,4 +1,4 @@
-._minting {
+._minting-body {
 
   & .sample-mint-btn {
     border: 1px solid #5e5e5e;
@@ -16,46 +16,44 @@
     top: -1px;
   }
 
-  & .sg-text-bg-logo-wrapper {
-    width: 82%;
+  & .sg-text-bg-logo-wrap {
+    z-index: 50;
+    width: 85%;
     position: absolute;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    margin: 171px auto 0;
-
+    top: 48%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     & img {
       width: 100%;
     }
   }
 
-  & .sg-nft-bg-wrapper {
-    position: absolute;
-    left: 0;
-    right: 0;
-    z-index: 200;
-    margin: -10px auto 0;
+  & .sg-nft-bg-wrap {
+    position: relative;
+    z-index: 100;
     width: 100%;
-
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     & img {
       width: 100%;
     }
   }
 
   & .mint-box-wrapper {
-    position: relative;
     z-index: 900;
     margin: 0 auto;
     padding: 54px;
     border-radius: 25px;
-    top: 253px;
-    height: 386px;
+    height: 382px;
     width: 708px;
-    //background-size: cover;
-    //background: #1b1c1b url("./../../../assets/imgs/overlay-box.png") 50% 55% no-repeat;
-    background-color: #30323063;
-    backdrop-filter: blur(10px);
-    border: 1px solid #80808033;
+    background-color: #2a2d2aeb;
+    border: 2px solid #ffffff1f;
+    position: absolute;
+    top: 62%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 
     & .mint-box-title {
       font-family: 'Rubik-Dirt';
@@ -87,7 +85,7 @@
     }
 
     & .mint-button-wrapper {
-      margin-top: 26px;
+      margin-top: 25px;
     }
     & input {
       border: none;
@@ -99,8 +97,7 @@
       padding-left: 26px;
       border-right: 0px;
       width: 100%;
-      border-top-left-radius: 3px;
-      border-bottom-left-radius: 3px;
+      border-radius: 3px 0px 0px 3px;
 
       &:focus {
         outline: none;
@@ -155,7 +152,7 @@
     top: 0px;
     height: 370px;
     width: 100%;
-    z-index: 500;
+    z-index: 80;
     background: linear-gradient(180deg, rgb(20 21 20 / 0%) 0%, #141514 100%);
     transform: rotate(-180deg);
     left: 0;
@@ -172,99 +169,293 @@
   & #OverlayBottomFade {
     position: fixed;
     bottom: 0px;
-    height: 15vh;
+    height: 18vh;
     width: 100%;
     z-index: 300;
     transform: rotate(180deg);
     left: 0;
     background: #141514;
-    box-shadow: 0 29px 64px 60px #141514;
+    box-shadow: 0 29px 80px 60px #141514;
   }
+}
 
+/* if backdrop support: very transparent and blurred */
+@supports ((-webkit-backdrop-filter: none) or (backdrop-filter: none)) {
+  ._minting-body .mint-box-wrapper {
+    background-color: #3e413e61;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+}
+
+// Modal Error
+.minting-modal-error-wrap {
+  width: 100%;
+  height: 40vh;
+  padding: 60px;
+  text-align: center;
+  margin: 0 auto;
+  border: 2px solid #C50000;
+  border-radius: 7px;
+
+  & h4 {
+    font-family: 'Rubik-Dirt';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 2.8em;
+    line-height: 70px;
+    text-transform: uppercase;
+    color: #E6E6E6;
+    margin-bottom: 50px;
+  }
+  & p {
+    font-family: 'Outfit';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 1.4em;
+    line-height: 60px;
+    color: #ECECEC;
+  }
+}
+
+@media only screen and (max-width: 1399px) {
+  // Modal modification for minting page only
+  .modal-dialog._floater._mint {
+    max-width: 70%;
+  }
 }
 
 @media only screen and (max-width: 992px) {
-  ._minting .sg-text-bg-logo-wrapper {
-    display: none;
-  }
-  ._minting .mint-box-wrapper {
-    top: 97px;
-    height: revert;
-    width: 90%;
-    background-color: #30323063;
-    backdrop-filter: blur(10px);
-    border: 1px solid #80808033;
-  }
-  ._minting .sg-nft-bg-wrapper {
-    margin: revert;
-    width: 100%;
-    transform: scale(2);
-    top: 50%;
+  .modal-dialog._floater._mint .modal-content {
+    margin-top: -130px !important;
   }
 
-  ._minting #OverlayBottomFade {
-    height: 20vh;
-  }
-
-  ._minting .mint-box-wrapper .mint-box-sub-sale, ._minting .mint-box-wrapper .mint-box-sub-remaining {
-    font-size: .7em;
-  }
-}
-
-
-
-
-// SneackyGoblins background text specific
-@media only screen and (min-width: 1270px) {
-  ._minting {
-    & .sg-text-bg-logo-wrapper {
-      margin: 100px auto 0;
+  ._minting-body {
+    & .sg-nft-bg-wrap {
+      top: 52%;
     }
-  }
-}
-@media only screen and (min-width: 1360px) {
-  ._minting {
-    & .sg-text-bg-logo-wrapper {
-      margin: 127px auto 0;
-    }
-  }
-}
-@media only screen and (min-width: 1430px) {
-  ._minting {
-    & .sg-text-bg-logo-wrapper {
-      margin: 157px auto 0;
-    }
-  }
-}
 
-@media only screen and (min-width: 1476px) {
-  ._minting {
-    & .sg-text-bg-logo-wrapper {
-      margin: 147px auto 0;
-    }
-  }
-}
+    & .mint-box-wrapper {
+      top: 40%;
+      height: 480px;
+      width: 90%;
 
-@media only screen and (min-width: 1630px) {
-  ._minting {
-    & .sg-text-bg-logo-wrapper {
-      margin: 177px auto 0;
-    }
-  }
-}
+      & .sg-text-bg-logo-wrap {
+        display: none;
+      }
 
-@media only screen and (min-width: 1940px) {
-  ._minting {
-    & .sg-text-bg-logo-wrapper {
-      margin: 191px auto 0;
+      & #OverlayBottomFade {
+        height: 20vh;
+      }
+
+      & input {
+        height: 80px;
+        //font-size: 1.4em;
+        //padding-left: 16px;
+      }
+
+      & .input-max {
+        height: 80px;
+        & span {
+          top: 28px;
+        }
+      }
+
+      & .mint-box-remaining-data {
+        //font-size: .7em;
+      }
+
+      & .mint-box-sub-sale, & .mint-box-sub-remaining {
+        //font-size: .56em;
+      }
+
+      & .mint-box-sub-sale,
+      & .mint-box-sub-remaining {
+        font-size: 1.2em;
+        margin-top: -16px;
+      }
+
+      & .input-eth {
+        height: 80px;
+        & span {
+          top: 24px;
+        }
+      }
+
+      & .mint-box-title {
+        font-size: 2.8em;
+      }
+
+      & .mint-button-wrapper {
+        margin-top: 22px;
+        & ._pbButton button {
+          height: 80px !important;
+        }
+      }
     }
   }
 }
 
-@media only screen and (min-width: 2115px) {
-  ._minting {
-    & .sg-text-bg-logo-wrapper {
-      margin: 201px auto 0;
+
+
+@media only screen and (max-width: 665px) {
+  .modal-dialog._floater._mint .modal-content {
+    margin-top: 0px !important;
+  }
+
+  .minting-modal-error-wrap {
+    padding: 16px;
+  }
+
+  ._minting-body {
+    & .sg-nft-bg-wrap {
+      top: 52%;
+    }
+
+    & .mint-box-wrapper {
+      top: 38%;
+      height: 320px;
+      padding: 22px;
+
+      & input {
+        height: 58px;
+        font-size: 1.4em;
+        padding-left: 16px;
+      }
+
+      & .input-max {
+        height: 58px;
+        & span {
+          top: 15px;
+          right: 7px;
+          font-size: .8em;
+        }
+      }
+
+      & .mint-box-remaining-data {
+        font-size: .7em;
+      }
+
+      & .mint-box-sub-sale, & .mint-box-sub-remaining {
+        font-size: .56em;
+      }
+
+      & .mint-box-sub-sale {
+        margin-top: -18px
+      }
+
+      & .mint-box-sub-remaining {
+        margin-top: -29px;
+      }
+
+      & .input-eth {
+        height: 58px;
+        & span {
+          top: 10px;
+          font-size: .75em;
+        }
+      }
+
+      & .mint-box-title {
+        font-size: 1.5em;
+        line-height: 24px;
+      }
+
+      & .mint-button-wrapper {
+        margin-top: 22px;
+        & ._pbButton button {
+          height: 58px !important;
+        }
+      }
+
+      & .mob-spec {
+        margin-top: -34px;
+      }
     }
   }
 }
+
+@media only screen and (max-width: 414px) {
+  ._minting-body {
+    & .sg-nft-bg-wrap {
+      top: 60%;
+    }
+
+    & .mint-box-wrapper {
+      top: 44%;
+      padding: 18px;
+      height: 294px;
+
+      & input {
+        height: 58px;
+      }
+
+      & .input-max {
+        height: 58px;
+        & span {
+          top: 16px;
+          font-size: .9em;
+        }
+      }
+
+      & .input-eth {
+        height: 58px;
+        & span {
+          top: 10px;
+          font-size: .7em;
+        }
+      }
+
+      & .mint-box-sub-remaining {
+        font-size: .6em;
+      }
+
+      & .mint-box-title {
+        font-size: 1.5em;
+      }
+
+      & .mint-box-sub-sale {
+        margin-top: -20px;
+        font-size: .6em;
+      }
+
+      & .mint-button-wrapper {
+        & ._pbButton button {
+          height: 58px !important;
+        }
+      }
+    }
+  }
+}
+
+
+@media only screen and (max-device-width: 992px) and (min-device-height: 891px) and (max-device-height: 926px) {
+  ._minting-body {
+    & #OverlayBottomFade {
+      height: 27vh;
+    }
+  }
+}
+
+@media only screen and (max-device-width: 992px) and (min-device-height: 700px) and (max-device-height: 890px) {
+  ._minting-body {
+    & #OverlayBottomFade {
+      height: 18vh;
+    }
+  }
+}
+
+@media only screen and (max-device-width: 992px) and (min-device-height: 200px) and (max-device-height: 699px) {
+  ._minting-body {
+    & #OverlayBottomFade {
+      height: 8vh;
+    }
+  }
+}
+
+
+
+
+
+
+
