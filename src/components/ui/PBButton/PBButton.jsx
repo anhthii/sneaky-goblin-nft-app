@@ -22,7 +22,8 @@ const PBButton = ({
     textSpace = 0,
     font = 'Helvetica',
     wordSpace = 3,
-    width = 15,
+    width = null,
+    padd = '0px 15px',
     height = 48,
     style = null,
     method = null,
@@ -43,7 +44,7 @@ const PBButton = ({
     };
 
     return (
-        <div className="_pbButton">
+        <div className="_pbButton" style={{ width: width ? `${width}px` : 'revert' }}>
             <button
                 onClick={onClickLinkHandler}
                 onMouseEnter={() => setIsHover(true)}
@@ -57,7 +58,7 @@ const PBButton = ({
                     fontWeight: textWeight,
                     fontSize: `${textSize}em`,
                     letterSpacing: `${textSpace}px`,
-                    padding: `0px ${width}px`,
+                    padding: padd,
                     height: `${height}px`,
                 }}
             >

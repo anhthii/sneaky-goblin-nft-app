@@ -6,8 +6,7 @@ import { EthersContext } from '../../../store/all-context-interface';
 import './Connector.scss';
 
 const Connector = ({
-    forceSwitch = true,
-    network = '0x1',
+    forceSwitch = false,
     connText = 'CONNECT',
     disconnText = 'DISCONNECT',
     bgColor = '#5e356c',
@@ -25,7 +24,7 @@ const Connector = ({
     height = 70,
     width = 210,
 }) => {
-    const { ethersProvider } = useContext(EthersContext);
+    const { ethersProvider, isConnected: _isConnected } = useContext(EthersContext);
 
     // State
     const [isConnected, setIsConnected] = useState(false);
@@ -45,6 +44,10 @@ const Connector = ({
             color: textColor,
         });
     }, []);
+
+    useEffect(() => {
+        setIsConnected(_isConnected);
+    }, [_isConnected]);
 
     // Handlers
     const onConnectHandler = async () => {

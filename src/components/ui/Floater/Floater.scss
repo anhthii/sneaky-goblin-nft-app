@@ -13,7 +13,8 @@
   }
 
   & .modal-content {
-    background-color: rgb(20 21 20 / 77%);
+    //background-color: rgb(20 21 20 / 77%);
+    background-color: rgb(15 16 15 / 76%);
     backdrop-filter: blur(12px);
     margin-top: 146px;
 
@@ -51,7 +52,7 @@
   }
 }
 
-
+// Breakpoints for Modal
 @media only screen and (max-width: 992px) {
   ._floater {
     &.modal-40w,
@@ -62,5 +63,10 @@
     &.modal-90w {
       max-width: 96% !important;
     }
+
+    & .modal-content {
+      margin-top: 70px !important;
+    }
   }
 }
+
