@@ -1,20 +1,35 @@
+import dotenv from "dotenv";
 import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import hpp from "hpp";
-import dataToJson from "data-to-json";
 import rateLimit from "express-rate-limit";
 import { ethers, utils } from "ethers";
 import path from "path";
 import { fileURLToPath } from "url";
 
+// For generating whitelist
+import sigGenerator from "./scripts/sig-generator.js";
+
+// Airtable API
+import {
+  ATCreate,
+  ATCheckIfExist,
+  ATGetAllRecords,
+} from "./utils/airtable/api.js";
+
+// Defaults
 const app = express();
 const port = process.env.PORT || 9000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+dotenv.config({ path: __dirname + "/../.env" });
 
 // CONSTANTS
 const REQ_ETH_BAL = 0.15;
+
+// States
+let whitelistAPIStatus = "normal";
 
 // Middlewares: Security ****************************************************
 app.use(cors({ origin: ["http://localhost:3000"] })); // Cross-Origin
@@ -34,18 +49,24 @@ const apiLimiter = rateLimit({
 // The API section **********************************************************
 app.post("/api/whitelist/join", apiLimiter, async (req, res) => {
   try {
-    const { signature, address, message, chainName } = req.body;
+    const {
+      signature: frontendSig,
+      address: frontendAddress,
+      message,
+    } = req.body;
+    const PROVIDER = new ethers.providers.JsonRpcProvider(process.env.RPC_LINK);
 
     // 1. Verify
-    const signee = utils.verifyMessage(message, signature);
-    if (signee !== address) {
-      res.status(400).json({ status: "failed", message: "Does not match!" });
+    const signee = utils.verifyMessage(message, frontendSig);
+    if (signee !== frontendAddress) {
+      res
+        .status(400)
+        .json({ status: "failed", message: "Verification failed!" });
       return;
     }
 
     // 2. Check balance
-    const provider = ethers.getDefaultProvider(chainName.toLowerCase());
-    const _balance = await provider.getBalance(address);
+    const _balance = await PROVIDER.getBalance(frontendAddress);
     const _userBal = ethers.utils.formatEther(_balance);
     const userBal = Number(parseFloat(`${_userBal}`).toFixed(2));
     if (userBal < REQ_ETH_BAL) {
@@ -56,16 +77,68 @@ app.post("/api/whitelist/join", apiLimiter, async (req, res) => {
       return;
     }
 
-    // 3. Start whitelisting script here
-    // 3.1  check if address already registered
-    // 3.2  if new then proceed
+    // 3. Check first if someone is registering, to avoid multiple writes
+    if (whitelistAPIStatus !== "normal") {
+      res.status(400).json({
+        status: "failed",
+        message: "Server busy. Please try after a few seconds.",
+      });
+      return;
+    }
 
-    // 4. Save to google spreadsheets
+    // 4. Set to busy
+    whitelistAPIStatus = "busy";
 
-    res.status(200).json({ status: "success", message: "NOT YET DONE......" });
+    // 5. Check first if address already registered previously
+    const _records = await ATCheckIfExist(frontendAddress);
+    if (_records.length > 0) {
+      whitelistAPIStatus = "normal";
+      res.status(400).json({
+        status: "failed",
+        message: "Already registered",
+      });
+      return;
+    }
+
+    // 6. Start whitelist process
+    const { address, signature } = await sigGenerator(
+      PROVIDER,
+      frontendAddress
+    );
+    if (!address || !signature) {
+      whitelistAPIStatus = "normal";
+      res.status(400).json({
+        status: "failed",
+        message: "Something went wrong during the process.",
+      });
+      return;
+    }
+
+    // 7. Save to Airtable
+    const { status: _s, message: _m } = await ATCreate({ address, signature });
+    if (_s !== "success") {
+      whitelistAPIStatus = "normal";
+      res.status(400).json({ status: "failed", message: _m });
+      return;
+    }
+
+    // 8. Revert with 1.5sec buffer
+    setTimeout(() => {
+      whitelistAPIStatus = "normal";
+    }, 1500);
+
+    res
+      .status(200)
+      .json({ status: "success", message: "Successfully Registered!" });
   } catch (e) {
+    console.log(e);
     res.status(400).json({ status: "failed", message: e.message });
   }
+});
+
+app.get("/api/whitelisted/all", async (req, res) => {
+  const _records = await ATGetAllRecords();
+  res.status(200).json({ whitelisted: _records });
 });
 
 // The static section *******************************************************

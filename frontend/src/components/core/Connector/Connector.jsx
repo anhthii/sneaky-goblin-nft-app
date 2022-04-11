@@ -6,7 +6,7 @@ import { EthersContext } from '../../../store/all-context-interface';
 import './Connector.scss';
 
 const Connector = ({
-    forceSwitch = false,
+    forceSwitch = true,
     network = '0x1',
     connText = 'CONNECT',
     disconnText = 'DISCONNECT',
@@ -49,8 +49,12 @@ const Connector = ({
         const data = await ethersProvider.connect();
         if (data) await setIsConnected(true);
         if (!data) await setIsConnected(false);
-        // Force switch to Ethereum after connecting, default: 0x1
-        if (data && forceSwitch) await ethersProvider.switchNetwork(network);
+        // Force switch to the network set in .env
+        if (data && forceSwitch) {
+            try {
+                await ethersProvider.switchNetwork();
+            } catch (e) {}
+        }
     };
 
     const onDisconnectHandler = async () => {

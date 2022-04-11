@@ -8,18 +8,17 @@ import PBButton from '../../ui/PBButton/PBButton';
 // Utils
 import useSignature from '../../../helpers/hooks/useSignature';
 import { EthersContext, MsgNetContext } from '../../../store/all-context-interface';
-import { getAllLocalEnv } from '../../../helpers/dev/general-helpers';
 
 // Styles
 import './JoinWhitelist.scss';
 
 const JoinWhitelist = () => {
-    const localEnv = getAllLocalEnv();
     const { setMsg } = useContext(MsgNetContext);
     const { sigData, signMessage } = useSignature();
-    const { isConnected } = useContext(EthersContext);
+    const { ethersProvider, isConnected } = useContext(EthersContext);
 
     // States >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    const [processing, setProcessing] = useState(false);
 
     // Effects >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     useEffect(() => {
@@ -32,38 +31,48 @@ const JoinWhitelist = () => {
 
     // Handlers >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     const onJoinHandler = async () => {
-        if (sigData) {
-            const payload = {
-                ...sigData,
-                chainName: localEnv.chainName,
-            };
+        if (!sigData) {
+            setProcessing(false);
+            return;
+        }
 
+        if (sigData) {
             try {
                 const res = await fetch('/api/whitelist/join', {
                     method: 'post',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify(sigData),
                 });
                 const receipt = await res.json();
+                setProcessing(false);
                 if (receipt.status === 'failed') {
                     setMsg(receipt.message, 'warning');
-                } else {
-                    setMsg('Successfully Registered!', 'success');
+                    return;
                 }
+                setMsg('Successfully Registered!', 'success');
             } catch (e) {
                 setMsg('Too many requests!', 'warning');
+                setProcessing(false);
             }
         }
     };
 
     // Helpers >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     const signMsgHelper = async () => {
+        if (processing) return;
+
         if (!isConnected) {
             setMsg('Please connect your wallet!', 'warning');
             return;
         }
-        const msg = `register-${nanoid()}`;
-        await signMessage(msg);
+        setProcessing(true);
+        try {
+            await ethersProvider.switchNetwork();
+            const msg = `register-${nanoid()}`;
+            await signMessage(msg);
+        } catch (e) {
+            setProcessing(false);
+        }
     };
 
     return (
@@ -79,7 +88,7 @@ const JoinWhitelist = () => {
 
                 <div className="d-grid gap-2 d-sm-flex justify-content-sm-center">
                     <PBButton
-                        text="Register"
+                        text={processing ? 'Processing...' : 'Register'}
                         textSpace={1}
                         textWeight={700}
                         bgColor="#2b3b5dd9"

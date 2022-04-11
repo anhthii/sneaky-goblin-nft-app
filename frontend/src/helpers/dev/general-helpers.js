@@ -7,7 +7,8 @@ export const isDev = () => {
 export const getAllLocalEnv = () => {
     return {
         infuraId: process.env.REACT_APP_INFURA_ID,
-        contractAddress: process.env.REACT_APP_CONTRACT_ADDRESS,
+        mintingContract: process.env.REACT_APP_MINTING_CONTRACT,
+        nftContract: process.env.REACT_APP_NFT_CONTRACT,
         chainHex: process.env.REACT_APP_CHAIN_HEX,
         chainDec: process.env.REACT_APP_CHAIN_DEC,
         chainName: process.env.REACT_APP_CHAIN_NAME,
