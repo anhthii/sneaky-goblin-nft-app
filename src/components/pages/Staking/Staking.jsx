@@ -3,6 +3,7 @@ import { useMediaQuery } from 'react-responsive';
 import { nanoid } from 'nanoid';
 import { Pagination } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react/swiper-react';
+import { Helmet } from 'react-helmet-async';
 
 // Components
 import PBButton from '../../ui/PBButton/PBButton';
@@ -965,33 +966,38 @@ const Staking = () => {
 
     // Main >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     return (
-        <div className="_staking-body">
-            <div className="main-bg">
-                <img className={isLarge ? 'large' : ''} src={whichBg()} alt="" />
-            </div>
+        <>
+            <Helmet>
+                <title>Sneaky Goblins | Staking</title>
+            </Helmet>
+            <div className="_staking-body">
+                <div className="main-bg">
+                    <img className={isLarge ? 'large' : ''} src={whichBg()} alt="" />
+                </div>
 
-            <div className="_rest">
-                {isConnected && isLarge && hqStats()}
+                <div className="_rest">
+                    {isConnected && isLarge && hqStats()}
 
-                {secondaryNav()}
+                    {secondaryNav()}
 
-                {!isConnected && notConnectedSection()}
+                    {!isConnected && notConnectedSection()}
 
-                {isConnected && (
-                    <div
-                        className={`_tabs ${
-                            activeTab === 'htp' || activeTab === 'invasion' ? 'notvault' : ''
-                        }`}
-                    >
-                        <div className="container">
-                            <div className="row">{whichTab()}</div>
+                    {isConnected && (
+                        <div
+                            className={`_tabs ${
+                                activeTab === 'htp' || activeTab === 'invasion' ? 'notvault' : ''
+                            }`}
+                        >
+                            <div className="container">
+                                <div className="row">{whichTab()}</div>
+                            </div>
                         </div>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
 
-            <div className="_body-overlay" />
-        </div>
+                <div className="_body-overlay" />
+            </div>
+        </>
     );
 };
 
