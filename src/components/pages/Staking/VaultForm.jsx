@@ -1,18 +1,30 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import gameBalance from '../../../assets/imgs/game-balance.svg';
 
 // Components
 import PBButton from '../../ui/PBButton/PBButton';
 
+// Utils
+import { MsgNetContext } from '../../../store/all-context-interface';
+
 const VaultForm = ({ title, subtitle, balance, btnText, method }) => {
+    const { setMsg } = useContext(MsgNetContext);
     const [value, setValue] = useState(balance);
 
     const handleChange = (e) => {
         setValue(e.target.value);
     };
 
-    const handleSubmit = () => {
-        method(value);
+    const handleSubmit = async () => {
+        try {
+            await method(value);
+            setValue(balance);
+        } catch (error) {
+            setMsg(`Failed ${btnText}`, 'warning');
+            if (process.env.NODE_ENV !== 'production') {
+                console.error(error);
+            }
+        }
     };
 
     return (
