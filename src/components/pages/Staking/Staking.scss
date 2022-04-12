@@ -86,23 +86,6 @@
         position: relative;
         padding: 4px 14px;
         margin: 0 auto;
-
-        & .fade-left-line {
-          border: 0.6px solid;
-          border-image: linear-gradient(to right, #ffc7480f,#FFC748) 1 0;
-          width: 50%;
-          position: relative;
-          left: 1px;
-        }
-        & .fade-right-line {
-          border: 0.6px solid;
-          border-image: linear-gradient(to left, #ffc7480f,#FFC748) 1 0;
-          width: 50%;
-          float: right;
-          position: relative;
-          top: -1.3px;
-          right: 1px;
-        }
       }
       & .line-wrap-bottom {
         width: 43%;
@@ -111,22 +94,12 @@
         padding: 4px 14px;
         margin: 0 auto;
 
-        & .fade-left-line {
-          border: 0.6px solid;
-          border-image: linear-gradient(to right, #ffc7480f,#FFC748) 1 0;
-          width: 50%;
-          position: relative;
-          left: 1px;
-        }
-        & .fade-right-line {
-          border: 0.6px solid;
-          border-image: linear-gradient(to left, #ffc7480f,#FFC748) 1 0;
-          width: 50%;
-          float: right;
-          position: relative;
-          top: -1.3px;
-          right: 1px;
-        }
+      }
+      & .line-wrap-bottom .fade-line, & .line-wrap-top .fade-line {
+        border: 0.6px solid;
+        border-image: radial-gradient(circle, #FFC748, #ffc8480f) 1 0;
+        width: 100%;
+        position: relative;
       }
     }
 
@@ -369,14 +342,16 @@
             border-right: 0px;
             padding-left: 28px;
           }
-          & .input-group-text.amount {
-            border-left: 0px;
-            padding-right: 38px;
+          & .amount {
+            border-left: 0;
+            box-shadow: none;
+            padding-right: 18px;
             font-family: 'Outfit';
             font-style: normal;
             font-weight: 600;
             font-size: 22px;
             line-height: 28px;
+            text-align: end;
             color: #FFFFFF;
           }
 
@@ -385,7 +360,10 @@
             background: transparent;
             border: 2px solid white;
             border-left: 0px;
-            border-right: 0px;
+
+            &[type=number]::-webkit-inner-spin-button {
+              margin-left: 20px;
+            }
           }
 
           & .icon-wrap {

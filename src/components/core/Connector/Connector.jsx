@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 
 import { EthersContext } from '../../../store/all-context-interface';
 
@@ -25,6 +25,7 @@ const Connector = ({
     width = 210,
 }) => {
     const { ethersProvider, isConnected: _isConnected } = useContext(EthersContext);
+    const isMounted = useRef(true);
 
     // State
     const [isConnected, setIsConnected] = useState(false);
@@ -33,6 +34,9 @@ const Connector = ({
 
     // Effects
     useEffect(() => {
+        // Prevent setting state on unmounted component
+        if (!isMounted.current) return;
+
         setDefBtnStyle({
             borderRadius: `${curve}px`,
             letterSpacing: `${textSpace}px`,
@@ -48,6 +52,9 @@ const Connector = ({
     useEffect(() => {
         setIsConnected(_isConnected);
     }, [_isConnected]);
+
+    // On component unmount
+    useEffect(() => () => (isMounted.current = false), []);
 
     // Handlers
     const onConnectHandler = async () => {
