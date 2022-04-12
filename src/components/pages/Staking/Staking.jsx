@@ -902,7 +902,7 @@ const Staking = () => {
         </div>
     );
 
-    // Invasion: Staked screen, NFTs that are already staked
+    // Invasion: Staked screen, NFT(s) that are already staked
     const invasionStakedUI = () => (
         <div className="_has-nfts">
             <div className="arrow-back" onClick={() => setActiveSubTab('')}>
