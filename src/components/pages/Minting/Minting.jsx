@@ -11,6 +11,7 @@ import MintingRouter from '../../../data/abis/MintingRouter.json';
 import NFT from '../../../data/abis/NFT.json';
 import WHITELIST_SIGNATURES from '../../../data/whitelists/ROUND-1-WHITELIST.json';
 
+
 // Components
 import PBButton from '../../ui/PBButton/PBButton';
 import Floater from '../../ui/Floater/Floater';
@@ -26,7 +27,15 @@ const Mintng = () => {
     const { ethers, address, provider, chainId, signer, isConnected, ethersProvider } =
         useContext(EthersContext);
     const { setMsg } = useContext(MsgNetContext);
-
+    const infuraProvider = new ethers.providers.InfuraProvider(
+        localEnv.chainName.toLowerCase(),
+        localEnv.infuraId
+    );
+    let mintingContract = new ethers.Contract(
+        localEnv.mintingContract,
+        MintingRouter.abi,
+        infuraProvider
+    );
     // Responsive width
     const isTabletOrMobile = useMediaQuery({ query: '(max-width: 992px)' });
 
@@ -56,6 +65,7 @@ const Mintng = () => {
     const [tokenStatusMsg, setTokenStatusMsg] = useState('');
     const [currentSaleStatusMsg, setCurrentSaleStatusMsg] = useState('');
     const [retrigger, setRetrigger] = useState(false);
+    const [areSaleDetailsSet, setSaleDetailsFlag] = useState(false);
     // Contract states
     const [nftContractSigner, setNftContractSigner] = useState(null);
     const [mintingContractSigner, setMintingContractSigner] = useState(null);
@@ -63,6 +73,49 @@ const Mintng = () => {
     const [showModal, setShowModal] = useState(false);
 
     // Effects >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    useEffect(() => {
+        // Setting sale round details
+        mintingContract.saleRound().then(function (data) {
+            if (!areSaleDetailsSet) {
+                setSaleDetailsFlag(true);
+                const {
+                    price,
+                    enabled,
+                    saleType,
+                    totalAmount,
+                    maxAmountPerMint,
+                    limitAmountPerWallet,
+                } = data;
+
+                if (!enabled) {
+                    setMintingActive(false);
+                    setCurrentSaleStatusMsg('NO ACTIVE SALE');
+                    return;
+                }
+
+                const priceInEther = ethers.utils.formatEther(price);
+                setTotalAmountToPayUI(priceInEther);
+                setPricePerMint(ethers.utils.parseEther(priceInEther));
+                setUnitPrice(price);
+                setTotalTokens(totalAmount.toNumber());
+                setCurrentSaleType(saleType);
+                setMaxPerMint(maxAmountPerMint.toNumber());
+                setLimitPerWallet(limitAmountPerWallet.toNumber());
+                if (saleType === SALE_TYPE.WHITELIST) setCurrentSaleStatusMsg('PRE-SALE');
+                if (saleType === SALE_TYPE.PUBLIC) setCurrentSaleStatusMsg('PUBLIC SALE');
+            }
+        });
+
+        mintingContract.tokensLeft().then(function (tokensLeft) {
+            const numTokensLeft = tokensLeft.toNumber();
+            setTokensLeft(numTokensLeft);
+            if (numTokensLeft === 0) {
+                setMintingActive(false);
+                setTokenStatusMsg('Sold out!');
+            }
+        });
+    });
+
     useEffect(() => {
         if (isConnected) {
             // Make sure user use the right network to avoid contract errors
@@ -135,11 +188,11 @@ const Mintng = () => {
             } else {
                 ethersProvider.disconnect();
                 setMsg(`Disconnected. Please connect to ${localEnv.chainName} first!`, 'warning');
-                setTotalAmountToPayUI(0);
-                setTotalTokens(0);
-                setTokensLeft(0);
-                setdefValueUI(1);
-                setMaxPerMint(0);
+                // setTotalAmountToPayUI(0);
+                // setTotalTokens(0);
+                // setTokensLeft(0);
+                // setdefValueUI(1);
+                // setMaxPerMint(0);
             }
         }
     }, [isConnected, chainId, retrigger]);
