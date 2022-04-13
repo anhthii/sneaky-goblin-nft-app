@@ -14,7 +14,7 @@ import VaultForm from './VaultForm';
 import HowToPlay from '../_layouts/HowToPlay/HowToPlay';
 
 // Utils
-import { getAllLocalEnv } from '../../../helpers/dev/general-helpers';
+import { getAllLocalEnv, floatFixer } from '../../../helpers/dev/general-helpers';
 import { EthersContext, MsgNetContext } from '../../../store/all-context-interface';
 
 // Styles & Assets
@@ -22,10 +22,6 @@ import stakingBg from '../../../assets/imgs/staking-bg.jpg';
 import stakingBgMob15 from '../../../assets/imgs/staking-bg-mob-x1.5.jpg';
 import stakingBgMobPlus2 from '../../../assets/imgs/staking-bg-mob-x2.jpg';
 import backArrow from '../../../assets/imgs/back-arrow-green.svg';
-import dummmyC from '../../../assets/imgs/dummy-c.png';
-import dummmyD from '../../../assets/imgs/dummy-d.png';
-import dummmyE from '../../../assets/imgs/dummy-e.png';
-import { floatFixer } from '../../../helpers/dev/general-helpers';
 import 'swiper/swiper.scss'; // core Swiper
 import 'swiper/modules/navigation/navigation.scss'; // Navigation module
 import 'swiper/modules/pagination/pagination.scss'; // Pagination module
@@ -89,20 +85,16 @@ const Staking = () => {
     // DUMMY DATA, SHOULD BE DELETED
     // uncomment allNftUserOwns and stakedNFTS above after you delete these 2
     const [allNftUserOwns, setAllNftUserOwn] = useState([]);
-    const [stakedNFTS, setStakedNFTS] = useState([
-        { uri: dummmyC, tokenId: 5, selected: false },
-        { uri: dummmyD, tokenId: 6, selected: false },
-        { uri: dummmyE, tokenId: 7, selected: false },
-    ]);
+    const [stakedNFTS, setStakedNFTS] = useState([]);
 
     // Helpers >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    const getInGameBal = async (_tokenContractSigner) => {
+    const getInGameBal = async (_tokenContractSigner = tokenContractSigner) => {
         const _inGameBal = await _tokenContractSigner.getUserBalance(address);
         const formattedInGameBal = ethers.utils.formatEther(_inGameBal);
         setInGameBal(formattedInGameBal);
     };
 
-    const getErcBal = async (_tokenContractSigner) => {
+    const getErcBal = async (_tokenContractSigner = tokenContractSigner) => {
         const _ercBal = await _tokenContractSigner.balanceOf(address);
         const formattedErcBal = ethers.utils.formatEther(_ercBal);
         setErcBal(formattedErcBal);
@@ -121,7 +113,7 @@ const Staking = () => {
         return floatFixer(ethers.utils.formatEther(total), 4);
     };
 
-    const getAllUserNFT = async (_nftContractSigner) => {
+    const getAllUserNFT = async (_nftContractSigner = nftContractSigner) => {
         const _nftBalance = +(await _nftContractSigner.balanceOf(address));
         if (_nftBalance <= 0) return setAllNftUserOwn([]);
 
@@ -151,7 +143,10 @@ const Staking = () => {
         setAllNftUserOwn(_allNftUserOwns);
     };
 
-    const getStakedTokens = async (_stakingContractSigner, _nftContractSigner) => {
+    const getStakedTokens = async (
+        _stakingContractSigner = stakingContractSigner,
+        _nftContractSigner = nftContractSigner
+    ) => {
         try {
             const _stakedNFTS = await _stakingContractSigner.getStakerTokens(
                 localEnv.nftContract,
@@ -201,9 +196,10 @@ const Staking = () => {
             await tx.wait();
             setTimeout(async () => {
                 setAllNftUserOwn([]);
+                setStakedNFTS([]);
                 setSelectedNFT([]);
-                await getAllUserNFT(nftContractSigner);
-                await getStakedTokens(stakingContractSigner, nftContractSigner);
+                await getAllUserNFT();
+                await getStakedTokens();
             }, 500);
 
             setMsg('All NFTs were staked!', 'success', 1500);
@@ -219,10 +215,11 @@ const Staking = () => {
             setIsUpdatingData(true);
             await tx.wait();
             setTimeout(async () => {
+                setAllNftUserOwn([]);
                 setStakedNFTS([]);
                 setSelectedNFT([]);
-                await getStakedTokens(stakingContractSigner, nftContractSigner);
-                await getAllUserNFT(nftContractSigner);
+                await getStakedTokens();
+                await getAllUserNFT();
             }, 500);
 
             setMsg('All NFTs were unstaked!', 'success', 1500);
@@ -414,29 +411,6 @@ const Staking = () => {
         }
 
         try {
-            // Check first if user already approved the web app as operator
-            const _isApproved = await nftContractSigner.isApprovedForAll(
-                address,
-                localEnv.nftStakingContract
-            );
-            if (!_isApproved) {
-                setMsg(`Please approve and authorize first.`, 'info');
-                setIsApproving(true);
-                try {
-                    const tx = await nftContractSigner.setApprovalForAll(
-                        localEnv.nftStakingContract,
-                        true
-                    );
-                    await tx.wait();
-                } catch (e) {
-                    setMsg(e.data?.message ?? e.message, 'warning');
-                } finally {
-                    setIsApproving(false);
-                }
-            }
-
-            setStakingProcessStarted(true);
-            setSelectedNFT([]);
             await unstakerHelper();
         } catch (e) {
             setMsg(e.data?.message ?? e.message, 'warning');
@@ -447,14 +421,14 @@ const Staking = () => {
     const onWithdrawInGame = async (amount) => {
         const ercAmount = ethers.utils.parseEther(amount);
         await tokenContractSigner.withdrawToken(ercAmount);
-        await getInGameBal(tokenContractSigner);
+        await getInGameBal();
     };
 
     // Handles erc deposit
     const onDepositERC = async (amount) => {
         const ercAmount = ethers.utils.parseEther(amount);
         await tokenContractSigner.depositToken(address, ercAmount);
-        await getErcBal(tokenContractSigner);
+        await getErcBal();
     };
 
     // Inline >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -661,51 +635,102 @@ const Staking = () => {
     );
 
     // Invasion: main wrap
-    const _invasionWrap = (child) => {
-        let _title = 'INVASION';
-        if (activeSubTab === 'stake') _title = 'STAKE';
-        if (activeSubTab === 'unstake') _title = 'UNSTAKE';
+    const _invasionWrap = useCallback(
+        (child) => {
+            let _title = 'INVASION';
+            if (activeSubTab === 'stake') _title = 'STAKE';
+            if (activeSubTab === 'unstake') _title = 'UNSTAKE';
 
-        return (
-            <div className="col">
-                <div
-                    className={`_invasion ${
-                        activeTab === 'invasion' &&
-                        (allNftUserOwns.length > 0 || stakedNFTS.length > 0)
-                            ? 'wide'
-                            : ''
-                    }`}
-                >
+            return (
+                <div className="col">
                     <div
-                        className={`-wrap ${
+                        className={`_invasion ${
                             activeTab === 'invasion' &&
                             (allNftUserOwns.length > 0 || stakedNFTS.length > 0)
                                 ? 'wide'
                                 : ''
-                        } ${activeSubTab !== '' ? 'sub-tab' : ''} ${
-                            allNftUserOwns.length < 1 || stakedNFTS.length < 1 ? 'none' : ''
                         }`}
                     >
-                        <p className="title">{_title}</p>
                         <div
-                            className={`-body ${
+                            className={`-wrap ${
+                                activeTab === 'invasion' &&
+                                (allNftUserOwns.length > 0 || stakedNFTS.length > 0)
+                                    ? 'wide'
+                                    : ''
+                            } ${activeSubTab !== '' ? 'sub-tab' : ''} ${
                                 allNftUserOwns.length < 1 || stakedNFTS.length < 1 ? 'none' : ''
                             }`}
                         >
-                            {child}
-                        </div>
-                        {/* If has NFTs, at least, show Stake & Unstake buttons */}
-                        {(allNftUserOwns.length > 0 || stakedNFTS.length > 0) &&
-                            activeSubTab === '' && (
-                                <div className="btns-wrap">
+                            <p className="title">{_title}</p>
+                            <div
+                                className={`-body ${
+                                    allNftUserOwns.length < 1 || stakedNFTS.length < 1 ? 'none' : ''
+                                }`}
+                            >
+                                {child}
+                            </div>
+                            {/* If has NFTs, at least, show Stake & Unstake buttons */}
+                            {(allNftUserOwns.length > 0 || stakedNFTS.length > 0) &&
+                                activeSubTab === '' && (
+                                    <div className="btns-wrap">
+                                        <div className="container">
+                                            <div className="row">
+                                                <div className="col-12 col-lg-6 stake">
+                                                    <PBButton
+                                                        method={() =>
+                                                            invasionButtonsHandler('stake')
+                                                        }
+                                                        text="Stake"
+                                                        font="Outfit"
+                                                        textColor="black"
+                                                        textSpace={1}
+                                                        textWeight={700}
+                                                        bgColor="linear-gradient(84.07deg, #00C555 16.64%, #00E75E 93.78%)"
+                                                        hoverBgColor="#15ad57"
+                                                        lineColor="#FFC748"
+                                                        lineSize={2}
+                                                        hoverLineColor="#FFC748"
+                                                        curve={3}
+                                                        height={70}
+                                                        width={144}
+                                                    />
+                                                </div>
+                                                <div className="col-12 col-lg-6 unstake">
+                                                    <PBButton
+                                                        method={() =>
+                                                            invasionButtonsHandler('unstake')
+                                                        }
+                                                        text="Unstake"
+                                                        font="Outfit"
+                                                        textColor="black"
+                                                        textSpace={1}
+                                                        textWeight={700}
+                                                        bgColor="linear-gradient(84.07deg, #C50000 16.64%, #FF0808 93.78%)"
+                                                        hoverBgColor="#B10000"
+                                                        lineColor="#FFC748"
+                                                        lineSize={2}
+                                                        hoverLineColor="#FFC748"
+                                                        curve={3}
+                                                        height={70}
+                                                        width={144}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                            {activeSubTab === 'stake' && (
+                                <div className="btns-wrap sub-tab">
                                     <div className="container">
                                         <div className="row">
-                                            <div className="col-12 col-lg-6 stake">
+                                            <div className="col-12 col-lg-4 mx-auto approve">
                                                 <PBButton
-                                                    method={() => invasionButtonsHandler('stake')}
-                                                    text="Stake"
+                                                    method={onStakingHandler}
+                                                    text="Approve Invaders"
                                                     font="Outfit"
                                                     textColor="black"
+                                                    textSize={1.25}
                                                     textSpace={1}
                                                     textWeight={700}
                                                     bgColor="linear-gradient(84.07deg, #00C555 16.64%, #00E75E 93.78%)"
@@ -715,25 +740,7 @@ const Staking = () => {
                                                     hoverLineColor="#FFC748"
                                                     curve={3}
                                                     height={70}
-                                                    width={144}
-                                                />
-                                            </div>
-                                            <div className="col-12 col-lg-6 unstake">
-                                                <PBButton
-                                                    method={() => invasionButtonsHandler('unstake')}
-                                                    text="Unstake"
-                                                    font="Outfit"
-                                                    textColor="black"
-                                                    textSpace={1}
-                                                    textWeight={700}
-                                                    bgColor="linear-gradient(84.07deg, #C50000 16.64%, #FF0808 93.78%)"
-                                                    hoverBgColor="#B10000"
-                                                    lineColor="#FFC748"
-                                                    lineSize={2}
-                                                    hoverLineColor="#FFC748"
-                                                    curve={3}
-                                                    height={70}
-                                                    width={144}
+                                                    width={229}
                                                 />
                                             </div>
                                         </div>
@@ -741,66 +748,40 @@ const Staking = () => {
                                 </div>
                             )}
 
-                        {activeSubTab === 'stake' && (
-                            <div className="btns-wrap sub-tab">
-                                <div className="container">
-                                    <div className="row">
-                                        <div className="col-12 col-lg-4 mx-auto approve">
-                                            <PBButton
-                                                method={onStakingHandler}
-                                                text="Approve Invaders"
-                                                font="Outfit"
-                                                textColor="black"
-                                                textSize={1.25}
-                                                textSpace={1}
-                                                textWeight={700}
-                                                bgColor="linear-gradient(84.07deg, #00C555 16.64%, #00E75E 93.78%)"
-                                                hoverBgColor="#15ad57"
-                                                lineColor="#FFC748"
-                                                lineSize={2}
-                                                hoverLineColor="#FFC748"
-                                                curve={3}
-                                                height={70}
-                                                width={229}
-                                            />
+                            {activeSubTab === 'unstake' && (
+                                <div className="btns-wrap sub-tab">
+                                    <div className="container">
+                                        <div className="row">
+                                            <div className="col-12 col-lg-4 mx-auto approve">
+                                                <PBButton
+                                                    method={onUntakingHandler}
+                                                    text="Approve Deserters"
+                                                    font="Outfit"
+                                                    textColor="black"
+                                                    textSize={1.25}
+                                                    textSpace={1}
+                                                    textWeight={700}
+                                                    bgColor="linear-gradient(84.07deg, #00C555 16.64%, #00E75E 93.78%)"
+                                                    hoverBgColor="#15ad57"
+                                                    lineColor="#FFC748"
+                                                    lineSize={2}
+                                                    hoverLineColor="#FFC748"
+                                                    curve={3}
+                                                    height={70}
+                                                    width={229}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-
-                        {activeSubTab === 'unstake' && (
-                            <div className="btns-wrap sub-tab">
-                                <div className="container">
-                                    <div className="row">
-                                        <div className="col-12 col-lg-4 mx-auto approve">
-                                            <PBButton
-                                                method={onUntakingHandler}
-                                                text="Approve Deserters"
-                                                font="Outfit"
-                                                textColor="black"
-                                                textSize={1.25}
-                                                textSpace={1}
-                                                textWeight={700}
-                                                bgColor="linear-gradient(84.07deg, #00C555 16.64%, #00E75E 93.78%)"
-                                                hoverBgColor="#15ad57"
-                                                lineColor="#FFC748"
-                                                lineSize={2}
-                                                hoverLineColor="#FFC748"
-                                                curve={3}
-                                                height={70}
-                                                width={229}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
-        );
-    };
+            );
+        },
+        [activeSubTab, allNftUserOwns, stakedNFTS]
+    );
 
     // Invasion: desktop nft cards reusable (todo: refactor put to _layouts dir)
     const _invasionDesktopCard = useCallback(
