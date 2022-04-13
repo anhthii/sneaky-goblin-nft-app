@@ -22,8 +22,6 @@ import stakingBg from '../../../assets/imgs/staking-bg.jpg';
 import stakingBgMob15 from '../../../assets/imgs/staking-bg-mob-x1.5.jpg';
 import stakingBgMobPlus2 from '../../../assets/imgs/staking-bg-mob-x2.jpg';
 import backArrow from '../../../assets/imgs/back-arrow-green.svg';
-import dummmyA from '../../../assets/imgs/dummy-a.png';
-import dummmyB from '../../../assets/imgs/dummy-b.png';
 import dummmyC from '../../../assets/imgs/dummy-c.png';
 import dummmyD from '../../../assets/imgs/dummy-d.png';
 import dummmyE from '../../../assets/imgs/dummy-e.png';
@@ -138,6 +136,47 @@ const Staking = () => {
         setAllNftUserOwn(_allNftUserOwns);
     };
 
+    const getStakedTokens = async (_stakingContractSigner, _nftContractSigner) => {
+        try {
+            const _stakedNFTS = await _stakingContractSigner.getStakerTokens(
+                localEnv.nftContract,
+                address
+            );
+            if (_stakedNFTS.length <= 0) {
+                // if (isInitialProcessDone) {
+                //     setStakingProcessStarted(false);
+                //     setIsUpdatingData(false);
+                // }
+                return setStakedNFTS([]);
+            }
+
+            const _userStakedNfts = [];
+
+            for (const tokenId of _stakedNFTS) {
+                const id = +tokenId;
+                const tokenURI = await _nftContractSigner.tokenURI(id);
+                const uri = tokenURI.includes('...') ? '0' : tokenURI;
+                const data = uri === '0' ? {} : await fetch(uri).then((res) => res.json());
+
+                _userStakedNfts.push({
+                    customId: nanoid(5),
+                    id,
+                    uri,
+                    data,
+                    stakeStatus: true, // important
+                    stakedData: null,
+                });
+            }
+
+            setStakedNFTS(_userStakedNfts);
+
+            // if (!isInitialProcessDone) setIsInitialProcessDone(true);
+        } catch (e) {
+            setStakingProcessStarted(false);
+            console.log('INITIAL:#1:', e);
+        }
+    };
+
     const stakerHelper = async () => {
         setMsg('Please confirm - Staking your NFT(s).', 'success', 5000);
 
@@ -149,13 +188,32 @@ const Staking = () => {
                 setAllNftUserOwn([]);
                 setSelectedNFT([]);
                 await getAllUserNFT(nftContractSigner);
+                await getStakedTokens(stakingContractSigner, nftContractSigner);
             }, 500);
 
             setMsg('All NFTs were staked!', 'success', 1500);
         } catch (e) {
             setStakingProcessStarted(false);
         }
+    };
+    const unstakerHelper = async () => {
+        setMsg('Please confirm - Unstaking your NFT(s).', 'success', 5000);
 
+        try {
+            const tx = await stakingContractSigner.withdraw(localEnv.nftContract, selectedNFT);
+            setIsUpdatingData(true);
+            await tx.wait();
+            setTimeout(async () => {
+                setStakedNFTS([]);
+                setSelectedNFT([]);
+                await getStakedTokens(stakingContractSigner, nftContractSigner);
+                await getAllUserNFT(nftContractSigner);
+            }, 500);
+
+            setMsg('All NFTs were unstaked!', 'success', 1500);
+        } catch (e) {
+            setStakingProcessStarted(false);
+        }
     };
 
     // Effects >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -197,6 +255,7 @@ const Staking = () => {
             await getInGameBal(_tokenContractSigner);
             await getErcBal(_tokenContractSigner);
             await getAllUserNFT(_nftContractSigner);
+            await getStakedTokens(_stakingContractSigner, _nftContractSigner);
 
             // TODO: Get all user's NFT s/he owns and save in setAllNftUserOwn([])
             // TODO: Determine which NFTs are already staked and save in setStakedNFTS([])
@@ -314,21 +373,58 @@ const Staking = () => {
     };
 
     // Will handle unstaking of NFT(s)
-    const onUntakingHandler = () => {
-        console.log('Selected for unstaking', selectedNFT);
-        // TODO: Refetch latest updated data from contract after
-        _temporaryRevertForUITest(stakedNFTS);
-    };
+    const onUntakingHandler = async () => {
+        if (!stakedNFTS.length) return;
 
-    // TODO: Please delete this func later
-    const _temporaryRevertForUITest = (arr) => {
-        const _clone = [...arr];
-        const _updated = _clone.map((nft) => {
-            nft.selected = false;
-            return nft;
+        if (selectedNFT.length < 1) {
+            setMsg('Please choose an NFT to unstake!', 'warning');
+            return;
+        }
+
+        if (!isStakingActive) {
+            setMsg('Staking is not launched yet!', 'warning');
+            return;
+        }
+
+        let _someAreNotStaked = false;
+        selectedNFT.forEach((_id) => {
+            _someAreNotStaked = stakedNFTS.some(
+                ({ id, stakeStatus }) => id === _id && !stakeStatus
+            );
         });
-        setAllNftUserOwn(_updated);
-        setSelectedNFT([]);
+        if (_someAreNotStaked) {
+            setMsg('You can only unstake staked NFT(s)', 'warning');
+            return;
+        }
+
+        try {
+            // Check first if user already approved the web app as operator
+            const _isApproved = await nftContractSigner.isApprovedForAll(
+                address,
+                localEnv.nftStakingContract
+            );
+            if (!_isApproved) {
+                setMsg(`Please approve and authorize first.`, 'info');
+                setIsApproving(true);
+                try {
+                    const tx = await nftContractSigner.setApprovalForAll(
+                        localEnv.nftStakingContract,
+                        true
+                    );
+                    await tx.wait();
+                } catch (e) {
+                    setMsg(e.data?.message ?? e.message, 'warning');
+                } finally {
+                    setIsApproving(false);
+                }
+            }
+
+            setStakingProcessStarted(true);
+            setSelectedNFT([]);
+            await unstakerHelper();
+        } catch (e) {
+            setMsg(e.data?.message ?? e.message, 'warning');
+        }
     };
 
     // Handles withdrawal for erc20, converts in-game to erc
@@ -854,14 +950,19 @@ const Staking = () => {
                         >
                             {nfts.length > 0 &&
                                 nfts.map((nft) => (
-                                    <SwiperSlide key={nanoid(5)}>
+                                    <SwiperSlide key={nft.customId}>
                                         <div className="col-auto _nft-cards">
                                             <div className="nft-img-wrap">
-                                                <img src={nft.uri} alt="" />
+                                                <img src={nft.data?.image} alt={nft.data?.name} />
                                             </div>
                                             <p className="yield">
-                                                {attrib}: <span>1600</span>
+                                                Name: <span>{nft.data?.name}</span>
                                             </p>
+                                            {nft.data?.attributes?.map((attr) => (
+                                                <p className="yield" key={attr.trait_type}>
+                                                    {attr.trait_type}: <span>{attr.value}</span>
+                                                </p>
+                                            ))}
 
                                             {btnText && (
                                                 <div className="nft-btn">
