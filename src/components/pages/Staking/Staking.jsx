@@ -25,6 +25,7 @@ import backArrow from '../../../assets/imgs/back-arrow-green.svg';
 import dummmyC from '../../../assets/imgs/dummy-c.png';
 import dummmyD from '../../../assets/imgs/dummy-d.png';
 import dummmyE from '../../../assets/imgs/dummy-e.png';
+import { floatFixer } from '../../../helpers/dev/general-helpers';
 import 'swiper/swiper.scss'; // core Swiper
 import 'swiper/modules/navigation/navigation.scss'; // Navigation module
 import 'swiper/modules/pagination/pagination.scss'; // Pagination module
@@ -83,6 +84,7 @@ const Staking = () => {
     const [nftContractSigner, setNftContractSigner] = useState(null);
     const [stakingContractSigner, setStakingContractSigner] = useState(null);
     const [tokenContractSigner, setTokenContractSigner] = useState(null);
+    const [dailyYield, setDailyYield] = useState('0');
 
     // DUMMY DATA, SHOULD BE DELETED
     // uncomment allNftUserOwns and stakedNFTS above after you delete these 2
@@ -104,6 +106,19 @@ const Staking = () => {
         const _ercBal = await _tokenContractSigner.balanceOf(address);
         const formattedErcBal = ethers.utils.formatEther(_ercBal);
         setErcBal(formattedErcBal);
+    };
+
+    const getDailyYield = async (stakingContractSigner) => {
+        const staker = await stakingContractSigner.stakers(address);
+        const { currentYield } = staker;
+        const formattedCurrentYield = ethers.utils.formatEther(currentYield);
+
+        setDailyYield(formattedCurrentYield);
+    };
+
+    const getTotalBalance = () => {
+        const total = ethers.utils.parseEther(ercBal).add(ethers.utils.parseEther(inGameBal)); //
+        return floatFixer(ethers.utils.formatEther(total), 4);
     };
 
     const getAllUserNFT = async (_nftContractSigner) => {
@@ -256,6 +271,7 @@ const Staking = () => {
             await getErcBal(_tokenContractSigner);
             await getAllUserNFT(_nftContractSigner);
             await getStakedTokens(_stakingContractSigner, _nftContractSigner);
+            await getDailyYield(_stakingContractSigner);
 
             // TODO: Get all user's NFT s/he owns and save in setAllNftUserOwn([])
             // TODO: Determine which NFTs are already staked and save in setStakedNFTS([])
@@ -604,27 +620,30 @@ const Staking = () => {
             <ul>
                 <li>
                     <p>
-                        Game Balance: <span>{inGameBal}</span>
+                        Game Balance: <span>{floatFixer(inGameBal, 4)}</span>
                     </p>
                 </li>
                 <li>
                     <p>
-                        ERC-20 Balance: <span>{ercBal}</span>
+                        ERC-20 Balance: <span>{floatFixer(ercBal, 4)}</span>
                     </p>
                 </li>
                 <li>
                     <p>
-                        Total Balance: <span>34900</span>
+                        Total Balance: <span>{getTotalBalance()}</span>
                     </p>
                 </li>
                 <li>
                     <p>
-                        Daily Yield: <span>9800 {TOKEN_SYMOBL}</span>
+                        Daily Yield:{' '}
+                        <span>
+                            {dailyYield} {TOKEN_SYMOBL}
+                        </span>
                     </p>
                 </li>
             </ul>
         ),
-        [TOKEN_SYMOBL, inGameBal, ercBal]
+        [TOKEN_SYMOBL, inGameBal, ercBal, dailyYield]
     );
 
     // The How-to-Play data elements
