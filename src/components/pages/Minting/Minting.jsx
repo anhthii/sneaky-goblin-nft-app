@@ -3,6 +3,7 @@ import { useMediaQuery } from 'react-responsive';
 import { Helmet } from 'react-helmet-async';
 
 // Utils
+import axios from 'axios';
 import { EthersContext, MsgNetContext } from '../../../store/all-context-interface';
 import { getAllLocalEnv, floatFixer } from '../../../helpers/dev/general-helpers';
 
@@ -186,9 +187,24 @@ const Mintng = () => {
         }
     };
 
-    const getWhitelistSigHandler = (address) => {
-        address = ethers.utils.getAddress(address);
-        return WHITELIST_SIGNATURES[address] || null;
+    /** 
+      * USE THIS IN CASE OF DDOS ATTACK ON WHITELIST API
+      * 1. Uncomment the function.
+      * 2. Comment the getWhitelistSigHandler that gets signature from API.
+      * 3. MAKE SURE TO ADD THE CORRECT WHITELIST FILE TO '../../../data/whitelists/ROUND-1-WHITELIST.json'
+    ***/
+    // const getWhitelistSigHandler = async (address) => {
+    //     address = ethers.utils.getAddress(address);
+    //     return WHITELIST_SIGNATURES[address] || null;
+    // };
+
+    const getWhitelistSigHandler = async (address) => {
+        try {
+            const res = await axios.get(`${localEnv.whitelistApiUrl}/get/${address}`);
+            return res.data.sig || null;
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     const isWhiteListRound = () => {
@@ -226,7 +242,7 @@ const Mintng = () => {
         try {
             let receipt;
             if (isWhiteListRound()) {
-                const sig = getWhitelistSigHandler(address);
+                const sig = await getWhitelistSigHandler(address);
                 if (sig === null) {
                     setHasError(true);
                     setErrorMsg('Your wallet address is not whitelisted!');

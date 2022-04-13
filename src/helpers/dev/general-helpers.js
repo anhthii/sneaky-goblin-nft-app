@@ -15,6 +15,7 @@ export const getAllLocalEnv = () => {
         chainName: process.env.REACT_APP_CHAIN_NAME,
         stakingContract: process.env.REACT_APP_NFT_STAKING_CONTRACT,
         tokenContract: process.env.REACT_APP_TOKEN_CONTRACT,
+        whitelistApiUrl: process.env.REACT_APP_WHITELIST_API_URL,
     };
 };
 
