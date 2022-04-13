@@ -7,7 +7,7 @@ import PBButton from '../../ui/PBButton/PBButton';
 // Utils
 import { MsgNetContext } from '../../../store/all-context-interface';
 
-const VaultForm = ({ title, subtitle, balance, btnText, method }) => {
+const VaultForm = ({ title, subtitle, balance, btnText, method, disabled = false }) => {
     const { setMsg } = useContext(MsgNetContext);
     const [value, setValue] = useState(balance);
 
@@ -44,6 +44,7 @@ const VaultForm = ({ title, subtitle, balance, btnText, method }) => {
                             aria-label="Amount (to the nearest dollar)"
                             value={value}
                             onChange={handleChange}
+                            disabled={disabled}
                         />
                     </div>
                 </div>
@@ -62,6 +63,7 @@ const VaultForm = ({ title, subtitle, balance, btnText, method }) => {
                     hoverLineColor="#FFC748"
                     curve={3}
                     height={70}
+                    disabled={disabled}
                 />
             </div>
         </div>

@@ -33,6 +33,7 @@ import 'swiper/modules/pagination/pagination.scss'; // Pagination module
 import './Staking.scss';
 
 // ABIs
+import NFT from '../../../data/abis/NFT.json';
 import NFTStaking from '../../../data/abis/NFTStaking.json';
 import Token from '../../../data/abis/Token.json';
 
@@ -98,16 +99,44 @@ const Staking = () => {
         { uri: dummmyE, tokenId: 7, selected: false },
     ]);
 
-    const getInGameBal = async (tokenContractSigner) => {
-        const _inGameBal = await tokenContractSigner.getUserBalance(address);
+    // Helpers >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    const getInGameBal = async (_tokenContractSigner) => {
+        const _inGameBal = await _tokenContractSigner.getUserBalance(address);
         const formattedInGameBal = ethers.utils.formatEther(_inGameBal);
         setInGameBal(formattedInGameBal);
     };
 
-    const getErcBal = async (tokenContractSigner) => {
-        const _ercBal = await tokenContractSigner.balanceOf(address);
+    const getErcBal = async (_tokenContractSigner) => {
+        const _ercBal = await _tokenContractSigner.balanceOf(address);
         const formattedErcBal = ethers.utils.formatEther(_ercBal);
         setErcBal(formattedErcBal);
+    };
+
+    const getAllUserNFT = async (_nftContractSigner) => {
+        const _nftBalance = +(await _nftContractSigner.balanceOf(address));
+        if (_nftBalance <= 0) return setAllNftUserOwn([]);
+
+        for (let tokenIndex = 0; tokenIndex < _nftBalance; tokenIndex++) {
+            try {
+                const tokenId = await _nftContractSigner.tokenOfOwnerByIndex(address, tokenIndex);
+                const tokenURI = await _nftContractSigner.tokenURI(tokenId);
+                const customId = nanoid(5);
+
+                // Save
+                setAllNftUserOwn((prev) => [
+                    ...prev,
+                    {
+                        customId,
+                        id: tokenId.toNumber(),
+                        uri: tokenURI.includes('...') ? '0' : tokenURI,
+                        stakeStatus: false,
+                        stakedData: null,
+                    },
+                ]);
+            } catch (e) {
+                console.log('INITIAL:#0:', e);
+            }
+        }
     };
 
     // Effects >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -138,10 +167,14 @@ const Staking = () => {
                 signer
             );
 
+            const _nftContractSigner = new ethers.Contract(localEnv.nftContract, NFT.abi, signer);
+
             setStakingContractSigner(_stakingContractSigner);
             setTokenContractSigner(_tokenContractSigner);
+            setNftContractSigner(_nftContractSigner);
             await getInGameBal(_tokenContractSigner);
             await getErcBal(_tokenContractSigner);
+            await getAllUserNFT(_nftContractSigner);
 
             // TODO: Get all user's NFT s/he owns and save in setAllNftUserOwn([])
             // TODO: Determine which NFTs are already staked and save in setStakedNFTS([])
@@ -422,7 +455,7 @@ const Staking = () => {
                 </li>
             </ul>
         ),
-        [TOKEN_SYMOBL]
+        [TOKEN_SYMOBL, inGameBal, ercBal]
     );
 
     // The How-to-Play data elements
@@ -927,6 +960,7 @@ const Staking = () => {
                         balance={inGameBal}
                         btnText="Withdraw to erc-20"
                         method={onWithdrawInGame}
+                        disabled={parseFloat(inGameBal) <= 0}
                     />
                     <VaultForm
                         title="ERC-20 BALANCE"
