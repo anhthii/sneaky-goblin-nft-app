@@ -228,14 +228,14 @@ const Staking = () => {
     // Handles withdrawal for erc20, converts in-game to erc
     const onWithdrawInGame = async (amount) => {
         const ercAmount = ethers.utils.parseEther(amount);
-        await stakingContractSigner.withdraw(address, ercAmount);
+        await tokenContractSigner.withdrawToken(ercAmount);
         await getInGameBal(tokenContractSigner);
     };
 
     // Handles erc deposit
     const onDepositERC = async (amount) => {
         const ercAmount = ethers.utils.parseEther(amount);
-        await stakingContractSigner.deposit(address, ercAmount);
+        await tokenContractSigner.depositToken(address, ercAmount);
         await getErcBal(tokenContractSigner);
     };
 
