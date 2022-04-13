@@ -494,8 +494,7 @@ const MintNavigation = () => {
             {showMobileFooter && (
                 <div id="FooterWrap" className="d-block d-lg-none">
                     <div className="line-wrap">
-                        <div className="footer-left-line" />
-                        <div className="footer-right-line" />
+                        <div className="fade-line" />
                     </div>
                     <div className="social-links-wrap">
                         <ul>

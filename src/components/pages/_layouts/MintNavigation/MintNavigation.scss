@@ -449,7 +449,12 @@
   }
 }
 
-
+.fade-line {
+  border: 0.6px solid;
+  border-image: radial-gradient(circle, #FFC748, #ffc8480f) 1 0;
+  width: 100%;
+  position: relative;
+}
 
 
 

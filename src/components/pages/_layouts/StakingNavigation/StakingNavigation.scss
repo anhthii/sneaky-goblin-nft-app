@@ -836,6 +836,13 @@
   }
 }
 
+.fade-line {
+  border: 0.6px solid;
+  border-image: radial-gradient(circle, #FFC748, #ffc8480f) 1 0;
+  width: 100%;
+  position: relative;
+}
+
 @media only screen and (max-width: 390px) {
   ._staking-nav {
     & .mobile-menu-left-wrap {

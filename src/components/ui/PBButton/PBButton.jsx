@@ -27,6 +27,7 @@ const PBButton = ({
     height = 48,
     style = null,
     method = null,
+    disabled = false,
 }) => {
     // State
     const [isHover, setIsHover] = useState(false);
@@ -49,6 +50,7 @@ const PBButton = ({
                 onClick={onClickLinkHandler}
                 onMouseEnter={() => setIsHover(true)}
                 onMouseLeave={() => setIsHover(false)}
+                disabled={disabled}
                 style={{
                     ...(style && { ...style }),
                     borderRadius: `${curve}px`,

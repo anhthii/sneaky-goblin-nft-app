@@ -50,12 +50,10 @@ const StakingNavigation = () => {
                         </ul>
 
                         <div className="nav-line-wrap-top">
-                            <div className="footer-left-line" />
-                            <div className="footer-right-line" />
+                            <div className="fade-line" />
                         </div>
                         <div className="nav-line-wrap-bottom">
-                            <div className="footer-left-line" />
-                            <div className="footer-right-line" />
+                            <div className="fade-line" />
                         </div>
 
                         <ul className="navbar-nav custom-nav right">
@@ -165,8 +163,7 @@ const StakingNavigation = () => {
             {showMobileFooter && showMenu && (
                 <div id="FooterWrap" className="d-block d-lg-none">
                     <div className="line-wrap">
-                        <div className="footer-left-line" />
-                        <div className="footer-right-line" />
+                        <div className="fade-line" />
                     </div>
                     <div className="social-links-wrap">
                         <ul>

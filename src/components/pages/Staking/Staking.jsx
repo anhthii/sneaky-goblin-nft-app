@@ -8,29 +8,29 @@ import { Helmet } from 'react-helmet-async';
 // Components
 import PBButton from '../../ui/PBButton/PBButton';
 import Connector from '../../core/Connector/Connector';
+import VaultForm from './VaultForm';
 
 // Layouts
 import HowToPlay from '../_layouts/HowToPlay/HowToPlay';
 
 // Utils
-import { getAllLocalEnv } from '../../../helpers/dev/general-helpers';
+import { getAllLocalEnv, floatFixer } from '../../../helpers/dev/general-helpers';
 import { EthersContext, MsgNetContext } from '../../../store/all-context-interface';
 
 // Styles & Assets
 import stakingBg from '../../../assets/imgs/staking-bg.jpg';
 import stakingBgMob15 from '../../../assets/imgs/staking-bg-mob-x1.5.jpg';
-import gameBalance from '../../../assets/imgs/game-balance.svg';
 import stakingBgMobPlus2 from '../../../assets/imgs/staking-bg-mob-x2.jpg';
 import backArrow from '../../../assets/imgs/back-arrow-green.svg';
-import dummmyA from '../../../assets/imgs/dummy-a.png';
-import dummmyB from '../../../assets/imgs/dummy-b.png';
-import dummmyC from '../../../assets/imgs/dummy-c.png';
-import dummmyD from '../../../assets/imgs/dummy-d.png';
-import dummmyE from '../../../assets/imgs/dummy-e.png';
 import 'swiper/swiper.scss'; // core Swiper
 import 'swiper/modules/navigation/navigation.scss'; // Navigation module
 import 'swiper/modules/pagination/pagination.scss'; // Pagination module
 import './Staking.scss';
+
+// ABIs
+import NFT from '../../../data/abis/NFT.json';
+import NFTStaking from '../../../data/abis/NFTStaking.json';
+import Token from '../../../data/abis/Token.json';
 
 const Staking = () => {
     const localEnv = getAllLocalEnv();
@@ -65,79 +65,225 @@ const Staking = () => {
     // UI States -----------
     const [activeTab, setActiveTab] = useState('');
     const [activeSubTab, setActiveSubTab] = useState('');
-    const [inGameBal, setInGameBal] = useState('24.900'); // temp
-    const [ercBal, setErcBal] = useState('10.000'); // temp
+    const [inGameBal, setInGameBal] = useState('0');
+    const [ercBal, setErcBal] = useState('0');
     // Staking States ------
     const [selectedNFT, setSelectedNFT] = useState([]);
     const [stakingProcessStarted, setStakingProcessStarted] = useState(false);
-    // const [allNftUserOwns, setAllNftUserOwn] = useState([]);
+    const [isStakingActive, setIsStakingActive] = useState(false);
+    const [isApproving, setIsApproving] = useState(false);
+    const [isUpdatingData, setIsUpdatingData] = useState(false);
     // const [stakedNFTS, setStakedNFTS] = useState([]);
     // NFT States ----------
     const [isRevealed, setIsRevealed] = useState(false);
     // Contract States -----
     const [nftContractSigner, setNftContractSigner] = useState(null);
     const [stakingContractSigner, setStakingContractSigner] = useState(null);
+    const [tokenContractSigner, setTokenContractSigner] = useState(null);
+    const [dailyYield, setDailyYield] = useState('0');
 
     // DUMMY DATA, SHOULD BE DELETED
     // uncomment allNftUserOwns and stakedNFTS above after you delete these 2
-    const [allNftUserOwns, setAllNftUserOwn] = useState([
-        { uri: dummmyA, tokenId: 0, selected: false },
-        { uri: dummmyB, tokenId: 1, selected: false },
-        { uri: dummmyC, tokenId: 2, selected: false },
-        { uri: dummmyD, tokenId: 3, selected: false },
-        { uri: dummmyE, tokenId: 4, selected: false },
-    ]);
-    const [stakedNFTS, setStakedNFTS] = useState([
-        { uri: dummmyC, tokenId: 5, selected: false },
-        { uri: dummmyD, tokenId: 6, selected: false },
-        { uri: dummmyE, tokenId: 7, selected: false },
-    ]);
+    const [allNftUserOwns, setAllNftUserOwn] = useState([]);
+    const [stakedNFTS, setStakedNFTS] = useState([]);
+
+    // Helpers >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    const getInGameBal = async (_tokenContractSigner = tokenContractSigner) => {
+        const _inGameBal = await _tokenContractSigner.getUserBalance(address);
+        const formattedInGameBal = ethers.utils.formatEther(_inGameBal);
+        setInGameBal(formattedInGameBal);
+    };
+
+    const getErcBal = async (_tokenContractSigner = tokenContractSigner) => {
+        const _ercBal = await _tokenContractSigner.balanceOf(address);
+        const formattedErcBal = ethers.utils.formatEther(_ercBal);
+        setErcBal(formattedErcBal);
+    };
+
+    const getDailyYield = async (stakingContractSigner) => {
+        const staker = await stakingContractSigner.stakers(address);
+        const { currentYield } = staker;
+        const formattedCurrentYield = ethers.utils.formatEther(currentYield);
+
+        setDailyYield(formattedCurrentYield);
+    };
+
+    const getTotalBalance = () => {
+        const total = ethers.utils.parseEther(ercBal).add(ethers.utils.parseEther(inGameBal)); //
+        return floatFixer(ethers.utils.formatEther(total), 4);
+    };
+
+    const getAllUserNFT = async (_nftContractSigner = nftContractSigner) => {
+        const _nftBalance = +(await _nftContractSigner.balanceOf(address));
+        if (_nftBalance <= 0) return setAllNftUserOwn([]);
+
+        const _allNftUserOwns = [];
+
+        for (let tokenIndex = 0; tokenIndex < _nftBalance; tokenIndex++) {
+            try {
+                const tokenId = await _nftContractSigner.tokenOfOwnerByIndex(address, tokenIndex);
+                const tokenURI = await _nftContractSigner.tokenURI(tokenId);
+                const uri = tokenURI.includes('...') ? '0' : tokenURI;
+                const data = uri === '0' ? {} : await fetch(uri).then((res) => res.json());
+
+                // Save
+                _allNftUserOwns.push({
+                    customId: nanoid(5),
+                    id: +tokenId,
+                    uri,
+                    data,
+                    stakeStatus: false,
+                    stakedData: null,
+                });
+            } catch (e) {
+                console.log('INITIAL:#0:', e);
+            }
+        }
+
+        setAllNftUserOwn(_allNftUserOwns);
+    };
+
+    const getStakedTokens = async (
+        _stakingContractSigner = stakingContractSigner,
+        _nftContractSigner = nftContractSigner
+    ) => {
+        try {
+            const _stakedNFTS = await _stakingContractSigner.getStakerTokens(
+                localEnv.nftContract,
+                address
+            );
+            if (_stakedNFTS.length <= 0) {
+                // if (isInitialProcessDone) {
+                //     setStakingProcessStarted(false);
+                //     setIsUpdatingData(false);
+                // }
+                return setStakedNFTS([]);
+            }
+
+            const _userStakedNfts = [];
+
+            for (const tokenId of _stakedNFTS) {
+                const id = +tokenId;
+                const tokenURI = await _nftContractSigner.tokenURI(id);
+                const uri = tokenURI.includes('...') ? '0' : tokenURI;
+                const data = uri === '0' ? {} : await fetch(uri).then((res) => res.json());
+
+                _userStakedNfts.push({
+                    customId: nanoid(5),
+                    id,
+                    uri,
+                    data,
+                    stakeStatus: true, // important
+                    stakedData: null,
+                });
+            }
+
+            setStakedNFTS(_userStakedNfts);
+
+            // if (!isInitialProcessDone) setIsInitialProcessDone(true);
+        } catch (e) {
+            setStakingProcessStarted(false);
+            console.log('INITIAL:#1:', e);
+        }
+    };
+
+    const stakerHelper = async () => {
+        setMsg('Please confirm - Staking your NFT(s).', 'success', 5000);
+
+        try {
+            const tx = await stakingContractSigner.deposit(localEnv.nftContract, selectedNFT);
+            setIsUpdatingData(true);
+            await tx.wait();
+            setTimeout(async () => {
+                setAllNftUserOwn([]);
+                setStakedNFTS([]);
+                setSelectedNFT([]);
+                await getAllUserNFT();
+                await getStakedTokens();
+            }, 500);
+
+            setMsg('All NFTs were staked!', 'success', 1500);
+        } catch (e) {
+            setStakingProcessStarted(false);
+        }
+    };
+    const unstakerHelper = async () => {
+        setMsg('Please confirm - Unstaking your NFT(s).', 'success', 5000);
+
+        try {
+            const tx = await stakingContractSigner.withdraw(localEnv.nftContract, selectedNFT);
+            setIsUpdatingData(true);
+            await tx.wait();
+            setTimeout(async () => {
+                setAllNftUserOwn([]);
+                setStakedNFTS([]);
+                setSelectedNFT([]);
+                await getStakedTokens();
+                await getAllUserNFT();
+            }, 500);
+
+            setMsg('All NFTs were unstaked!', 'success', 1500);
+        } catch (e) {
+            setStakingProcessStarted(false);
+        }
+    };
 
     // Effects >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     useEffect(() => {
-        if (isConnected) {
-            // Default active tab
-            setActiveTab('invasion');
+        if (!isConnected) return;
 
-            // Make sure user use the right network to avoid contract errors
-            if (`${chainId}` === localEnv.chainDec) {
-                (async () => {
-                    //... Put all initial load logic here for contracts
-                    // NFT Contract
-                    // const _nftContractSigner = new ethers.Contract(
-                    //     localEnv.nftContract,
-                    //     NFT.abi,
-                    //     signer
-                    // );
-                    // setNftContractSigner(_nftContractSigner);
-                    // Staking Contract
-                    // const _stakingContractSigner = new ethers.Contract(
-                    //     localEnv.nftStakingContract,
-                    //     NFT_STAKING.abi,
-                    //     signer
-                    // );
-                    // setStakingContractSigner(_stakingContractSigner);
-                    //---------
-                    // TODO: Get all user's NFT s/he owns and save in setAllNftUserOwn([])
-                    // TODO: Determine which NFTs are already staked and save in setStakedNFTS([])
-                    // NOTE: MOD project has a working staking page, it's worth to check that out
-                    // NOTE: Another important thing use nanoid(5) as customId in your NFT data
-                    // so that each mapping of element is unique, don't depend on the token id.
-                    // Please check MOD project, I implemented it there. Sample NFT data:
-                    // {
-                    //       customId, // nanoid
-                    //       tokenId,
-                    //       uri,
-                    //       selected, // this is use to determine if nft is selected or not
-                    //       ...
-                    // }
-                })();
-            } else {
-                ethersProvider.disconnect();
-                setMsg(`Disconnected. Please connect to ${localEnv.chainName} first!`, 'warning');
-                // Revert all other states here...
-            }
+        // Default active tab
+        setActiveTab('invasion');
+
+        // Make sure user use the right network to avoid contract errors
+        if (`${chainId}` !== localEnv.chainDec) {
+            ethersProvider.disconnect();
+            setMsg(`Disconnected. Please connect to ${localEnv.chainName} first!`, 'warning');
+            // Revert all other states here...
+            return;
         }
+
+        (async () => {
+            const _stakingContractSigner = new ethers.Contract(
+                localEnv.nftStakingContract,
+                NFTStaking.abi,
+                signer
+            );
+
+            const _tokenContractSigner = new ethers.Contract(
+                localEnv.tokenContract,
+                Token.abi,
+                signer
+            );
+
+            const _nftContractSigner = new ethers.Contract(localEnv.nftContract, NFT.abi, signer);
+
+            const _isStakingActive = await _stakingContractSigner.stakingLaunched();
+            if (_isStakingActive) setIsStakingActive(true);
+
+            setStakingContractSigner(_stakingContractSigner);
+            setTokenContractSigner(_tokenContractSigner);
+            setNftContractSigner(_nftContractSigner);
+            await getInGameBal(_tokenContractSigner);
+            await getErcBal(_tokenContractSigner);
+            await getAllUserNFT(_nftContractSigner);
+            await getStakedTokens(_stakingContractSigner, _nftContractSigner);
+            await getDailyYield(_stakingContractSigner);
+
+            // TODO: Get all user's NFT s/he owns and save in setAllNftUserOwn([])
+            // TODO: Determine which NFTs are already staked and save in setStakedNFTS([])
+            // NOTE: MOD project has a working staking page, it's worth to check that out
+            // NOTE: Another important thing use nanoid(5) as customId in your NFT data
+            // so that each mapping of element is unique, don't depend on the token id.
+            // Please check MOD project, I implemented it there. Sample NFT data:
+            // {
+            //       customId, // nanoid
+            //       tokenId,
+            //       uri,
+            //       selected, // this is use to determine if nft is selected or not
+            //       ...
+            // }
+        })();
     }, [isConnected, chainId]);
 
     // Handlers >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -160,57 +306,130 @@ const Staking = () => {
 
     // When user selects and NFT
     const onSelectingNftHandler = useCallback(
-        async (tokenId, type) => {
+        (tokenId, type) => {
             let _clone;
             if (type === 'unstaked') _clone = [...allNftUserOwns];
             if (type === 'staked') _clone = [...stakedNFTS];
 
             // Update the nft selected property
-            const _nftToUpdateIndex = _clone.findIndex((nft) => nft.tokenId === tokenId);
+            const _nftToUpdateIndex = _clone.findIndex((nft) => nft.id === tokenId);
             _clone[_nftToUpdateIndex].selected = !_clone[_nftToUpdateIndex].selected;
-            await setAllNftUserOwn(_clone);
+            setAllNftUserOwn(_clone);
             // Update the selectedNFT array
             setSelectedNFT([]);
             // for some weird/unknown reason .filter() is not working
             _clone.forEach((nft) => {
-                if (nft.selected) setSelectedNFT((prev) => [...prev, nft.tokenId]);
+                if (nft.selected) setSelectedNFT((prev) => [...prev, nft.id]);
             });
         },
         [selectedNFT, allNftUserOwns, stakedNFTS]
     );
 
     // Will handle staking of NFT(s)
-    const onStakingHandler = () => {
-        console.log('Selected for staking', selectedNFT);
+    const onStakingHandler = async () => {
+        if (!allNftUserOwns.length) return;
+
+        if (selectedNFT.length < 1) {
+            setMsg('Please choose an NFT to stake!', 'warning');
+            return;
+        }
+
+        if (!isStakingActive) {
+            setMsg('Staking is not launched yet!', 'warning');
+            return;
+        }
+
+        // Can only stake not-yet-staked NFTs, so if some of the selected NFTs are already staked...
+        let _someAreStaked = false;
+        selectedNFT.forEach((_selectedNFT) => {
+            _someAreStaked = allNftUserOwns.some(
+                (nft) => nft.id === _selectedNFT && nft.stakeStatus
+            );
+        });
+        if (_someAreStaked) {
+            setMsg('You can only stake unstaked NFT(s)', 'warning');
+            return;
+        }
+
+        try {
+            // Check first if user already approved the web app as operator
+            const _isApproved = await nftContractSigner.isApprovedForAll(
+                address,
+                localEnv.nftStakingContract
+            );
+            if (!_isApproved) {
+                setMsg(`Please approve and authorize first.`, 'info');
+                setIsApproving(true);
+                try {
+                    const tx = await nftContractSigner.setApprovalForAll(
+                        localEnv.nftStakingContract,
+                        true
+                    );
+                    await tx.wait();
+                } catch (e) {
+                    setMsg(e.data?.message ?? e.message, 'warning');
+                } finally {
+                    setIsApproving(false);
+                }
+            }
+
+            setStakingProcessStarted(true);
+            setSelectedNFT([]);
+            await stakerHelper();
+        } catch (error) {
+            setMsg(error.message, 'warning');
+        }
         // TODO: If NFTs are not approved, approve it first
         // TODO: Also, refetch latest updated data from contract
         // TODO: Don't forget to reset the selectedNFT array []
-        _temporaryRevertForUITest(allNftUserOwns);
+        // _temporaryRevertForUITest(allNftUserOwns);
     };
 
     // Will handle unstaking of NFT(s)
-    const onUntakingHandler = () => {
-        console.log('Selected for unstaking', selectedNFT);
-        // TODO: Refetch latest updated data from contract after
-        _temporaryRevertForUITest(stakedNFTS);
-    };
+    const onUntakingHandler = async () => {
+        if (!stakedNFTS.length) return;
 
-    // TODO: Please delete this func later
-    const _temporaryRevertForUITest = (arr) => {
-        const _clone = [...arr];
-        const _updated = _clone.map((nft) => {
-            nft.selected = false;
-            return nft;
+        if (selectedNFT.length < 1) {
+            setMsg('Please choose an NFT to unstake!', 'warning');
+            return;
+        }
+
+        if (!isStakingActive) {
+            setMsg('Staking is not launched yet!', 'warning');
+            return;
+        }
+
+        let _someAreNotStaked = false;
+        selectedNFT.forEach((_id) => {
+            _someAreNotStaked = stakedNFTS.some(
+                ({ id, stakeStatus }) => id === _id && !stakeStatus
+            );
         });
-        setAllNftUserOwn(_updated);
-        setSelectedNFT([]);
+        if (_someAreNotStaked) {
+            setMsg('You can only unstake staked NFT(s)', 'warning');
+            return;
+        }
+
+        try {
+            await unstakerHelper();
+        } catch (e) {
+            setMsg(e.data?.message ?? e.message, 'warning');
+        }
     };
 
     // Handles withdrawal for erc20, converts in-game to erc
-    const onWithdrawInGame = () => {};
+    const onWithdrawInGame = async (amount) => {
+        const ercAmount = ethers.utils.parseEther(amount);
+        await tokenContractSigner.withdrawToken(ercAmount);
+        await getInGameBal();
+    };
 
     // Handles erc deposit
-    const onDepositERC = () => {};
+    const onDepositERC = async (amount) => {
+        const ercAmount = ethers.utils.parseEther(amount);
+        await tokenContractSigner.depositToken(address, ercAmount);
+        await getErcBal();
+    };
 
     // Inline >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     const whichBg = useCallback(() => {
@@ -230,8 +449,7 @@ const Staking = () => {
                 <div className="row">
                     <div className="col-12 mx-auto">
                         <div className="line-wrap-top">
-                            <div className="fade-left-line" />
-                            <div className="fade-right-line" />
+                            <div className="fade-line" />
                         </div>
                     </div>
 
@@ -280,8 +498,7 @@ const Staking = () => {
 
                     <div className="col-12 mx-auto">
                         <div className="line-wrap-bottom">
-                            <div className="fade-left-line" />
-                            <div className="fade-right-line" />
+                            <div className="fade-line" />
                         </div>
                     </div>
                 </div>
@@ -377,27 +594,30 @@ const Staking = () => {
             <ul>
                 <li>
                     <p>
-                        Game Balance: <span>24900</span>
+                        Game Balance: <span>{floatFixer(inGameBal, 4)}</span>
                     </p>
                 </li>
                 <li>
                     <p>
-                        ERC-20 Balance: <span>10000</span>
+                        ERC-20 Balance: <span>{floatFixer(ercBal, 4)}</span>
                     </p>
                 </li>
                 <li>
                     <p>
-                        Total Balance: <span>34900</span>
+                        Total Balance: <span>{getTotalBalance()}</span>
                     </p>
                 </li>
                 <li>
                     <p>
-                        Daily Yield: <span>9800 {TOKEN_SYMOBL}</span>
+                        Daily Yield:{' '}
+                        <span>
+                            {dailyYield} {TOKEN_SYMOBL}
+                        </span>
                     </p>
                 </li>
             </ul>
         ),
-        [TOKEN_SYMOBL]
+        [TOKEN_SYMOBL, inGameBal, ercBal, dailyYield]
     );
 
     // The How-to-Play data elements
@@ -414,93 +634,103 @@ const Staking = () => {
         </div>
     );
 
-    // The in-game and erc balances
-    const vault = (title, sub, bal, btnText, method) => (
-        <div className="col-12">
-            <div className="_vault">
-                <p className="title">{title}</p>
-                <div className="input-body">
-                    <div className="input-group mb-3">
-                        <span className="input-group-text icon">
-                            <div className="d-inline-block icon-wrap">
-                                <img src={gameBalance} alt="" />
-                            </div>
-                        </span>
-                        <input
-                            disabled
-                            type="text"
-                            className="form-control"
-                            aria-label="Amount (to the nearest dollar)"
-                        />
-                        <span className="input-group-text amount">{bal}</span>
-                    </div>
-                </div>
-                <p className="sub">{sub}</p>
-                <PBButton
-                    method={method}
-                    text={btnText}
-                    font="Outfit"
-                    textColor="black"
-                    textSpace={1}
-                    textWeight={700}
-                    bgColor="linear-gradient(84.07deg, #00C555 16.64%, #00E75E 93.78%)"
-                    hoverBgColor="#15ad57"
-                    lineColor="#FFC748"
-                    lineSize={2}
-                    hoverLineColor="#FFC748"
-                    curve={3}
-                    height={70}
-                />
-            </div>
-        </div>
-    );
-
     // Invasion: main wrap
-    const _invasionWrap = (child) => {
-        let _title = 'INVASION';
-        if (activeSubTab === 'stake') _title = 'STAKE';
-        if (activeSubTab === 'unstake') _title = 'UNSTAKE';
+    const _invasionWrap = useCallback(
+        (child) => {
+            let _title = 'INVASION';
+            if (activeSubTab === 'stake') _title = 'STAKE';
+            if (activeSubTab === 'unstake') _title = 'UNSTAKE';
 
-        return (
-            <div className="col">
-                <div
-                    className={`_invasion ${
-                        activeTab === 'invasion' &&
-                        (allNftUserOwns.length > 0 || stakedNFTS.length > 0)
-                            ? 'wide'
-                            : ''
-                    }`}
-                >
+            return (
+                <div className="col">
                     <div
-                        className={`-wrap ${
+                        className={`_invasion ${
                             activeTab === 'invasion' &&
                             (allNftUserOwns.length > 0 || stakedNFTS.length > 0)
                                 ? 'wide'
                                 : ''
-                        } ${activeSubTab !== '' ? 'sub-tab' : ''} ${
-                            allNftUserOwns.length < 1 || stakedNFTS.length < 1 ? 'none' : ''
                         }`}
                     >
-                        <p className="title">{_title}</p>
                         <div
-                            className={`-body ${
+                            className={`-wrap ${
+                                activeTab === 'invasion' &&
+                                (allNftUserOwns.length > 0 || stakedNFTS.length > 0)
+                                    ? 'wide'
+                                    : ''
+                            } ${activeSubTab !== '' ? 'sub-tab' : ''} ${
                                 allNftUserOwns.length < 1 || stakedNFTS.length < 1 ? 'none' : ''
                             }`}
                         >
-                            {child}
-                        </div>
-                        {/* If has NFTs, at least, show Stake & Unstake buttons */}
-                        {(allNftUserOwns.length > 0 || stakedNFTS.length > 0) &&
-                            activeSubTab === '' && (
-                                <div className="btns-wrap">
+                            <p className="title">{_title}</p>
+                            <div
+                                className={`-body ${
+                                    allNftUserOwns.length < 1 || stakedNFTS.length < 1 ? 'none' : ''
+                                }`}
+                            >
+                                {child}
+                            </div>
+                            {/* If has NFTs, at least, show Stake & Unstake buttons */}
+                            {(allNftUserOwns.length > 0 || stakedNFTS.length > 0) &&
+                                activeSubTab === '' && (
+                                    <div className="btns-wrap">
+                                        <div className="container">
+                                            <div className="row">
+                                                <div className="col-12 col-lg-6 stake">
+                                                    <PBButton
+                                                        method={() =>
+                                                            invasionButtonsHandler('stake')
+                                                        }
+                                                        text="Stake"
+                                                        font="Outfit"
+                                                        textColor="black"
+                                                        textSpace={1}
+                                                        textWeight={700}
+                                                        bgColor="linear-gradient(84.07deg, #00C555 16.64%, #00E75E 93.78%)"
+                                                        hoverBgColor="#15ad57"
+                                                        lineColor="#FFC748"
+                                                        lineSize={2}
+                                                        hoverLineColor="#FFC748"
+                                                        curve={3}
+                                                        height={70}
+                                                        width={144}
+                                                    />
+                                                </div>
+                                                <div className="col-12 col-lg-6 unstake">
+                                                    <PBButton
+                                                        method={() =>
+                                                            invasionButtonsHandler('unstake')
+                                                        }
+                                                        text="Unstake"
+                                                        font="Outfit"
+                                                        textColor="black"
+                                                        textSpace={1}
+                                                        textWeight={700}
+                                                        bgColor="linear-gradient(84.07deg, #C50000 16.64%, #FF0808 93.78%)"
+                                                        hoverBgColor="#B10000"
+                                                        lineColor="#FFC748"
+                                                        lineSize={2}
+                                                        hoverLineColor="#FFC748"
+                                                        curve={3}
+                                                        height={70}
+                                                        width={144}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                            {activeSubTab === 'stake' && (
+                                <div className="btns-wrap sub-tab">
                                     <div className="container">
                                         <div className="row">
-                                            <div className="col-12 col-lg-6 stake">
+                                            <div className="col-12 col-lg-4 mx-auto approve">
                                                 <PBButton
-                                                    method={() => invasionButtonsHandler('stake')}
-                                                    text="Stake"
+                                                    method={onStakingHandler}
+                                                    text="Approve Invaders"
                                                     font="Outfit"
                                                     textColor="black"
+                                                    textSize={1.25}
                                                     textSpace={1}
                                                     textWeight={700}
                                                     bgColor="linear-gradient(84.07deg, #00C555 16.64%, #00E75E 93.78%)"
@@ -510,25 +740,7 @@ const Staking = () => {
                                                     hoverLineColor="#FFC748"
                                                     curve={3}
                                                     height={70}
-                                                    width={144}
-                                                />
-                                            </div>
-                                            <div className="col-12 col-lg-6 unstake">
-                                                <PBButton
-                                                    method={() => invasionButtonsHandler('unstake')}
-                                                    text="Unstake"
-                                                    font="Outfit"
-                                                    textColor="black"
-                                                    textSpace={1}
-                                                    textWeight={700}
-                                                    bgColor="linear-gradient(84.07deg, #C50000 16.64%, #FF0808 93.78%)"
-                                                    hoverBgColor="#B10000"
-                                                    lineColor="#FFC748"
-                                                    lineSize={2}
-                                                    hoverLineColor="#FFC748"
-                                                    curve={3}
-                                                    height={70}
-                                                    width={144}
+                                                    width={229}
                                                 />
                                             </div>
                                         </div>
@@ -536,66 +748,40 @@ const Staking = () => {
                                 </div>
                             )}
 
-                        {activeSubTab === 'stake' && (
-                            <div className="btns-wrap sub-tab">
-                                <div className="container">
-                                    <div className="row">
-                                        <div className="col-12 col-lg-4 mx-auto approve">
-                                            <PBButton
-                                                method={onStakingHandler}
-                                                text="Approve Invaders"
-                                                font="Outfit"
-                                                textColor="black"
-                                                textSize={1.25}
-                                                textSpace={1}
-                                                textWeight={700}
-                                                bgColor="linear-gradient(84.07deg, #00C555 16.64%, #00E75E 93.78%)"
-                                                hoverBgColor="#15ad57"
-                                                lineColor="#FFC748"
-                                                lineSize={2}
-                                                hoverLineColor="#FFC748"
-                                                curve={3}
-                                                height={70}
-                                                width={229}
-                                            />
+                            {activeSubTab === 'unstake' && (
+                                <div className="btns-wrap sub-tab">
+                                    <div className="container">
+                                        <div className="row">
+                                            <div className="col-12 col-lg-4 mx-auto approve">
+                                                <PBButton
+                                                    method={onUntakingHandler}
+                                                    text="Approve Deserters"
+                                                    font="Outfit"
+                                                    textColor="black"
+                                                    textSize={1.25}
+                                                    textSpace={1}
+                                                    textWeight={700}
+                                                    bgColor="linear-gradient(84.07deg, #00C555 16.64%, #00E75E 93.78%)"
+                                                    hoverBgColor="#15ad57"
+                                                    lineColor="#FFC748"
+                                                    lineSize={2}
+                                                    hoverLineColor="#FFC748"
+                                                    curve={3}
+                                                    height={70}
+                                                    width={229}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-
-                        {activeSubTab === 'unstake' && (
-                            <div className="btns-wrap sub-tab">
-                                <div className="container">
-                                    <div className="row">
-                                        <div className="col-12 col-lg-4 mx-auto approve">
-                                            <PBButton
-                                                method={onUntakingHandler}
-                                                text="Approve Deserters"
-                                                font="Outfit"
-                                                textColor="black"
-                                                textSize={1.25}
-                                                textSpace={1}
-                                                textWeight={700}
-                                                bgColor="linear-gradient(84.07deg, #00C555 16.64%, #00E75E 93.78%)"
-                                                hoverBgColor="#15ad57"
-                                                lineColor="#FFC748"
-                                                lineSize={2}
-                                                hoverLineColor="#FFC748"
-                                                curve={3}
-                                                height={70}
-                                                width={229}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
-        );
-    };
+            );
+        },
+        [activeSubTab, allNftUserOwns, stakedNFTS]
+    );
 
     // Invasion: desktop nft cards reusable (todo: refactor put to _layouts dir)
     const _invasionDesktopCard = useCallback(
@@ -661,20 +847,23 @@ const Staking = () => {
                     >
                         {nfts.length > 0 &&
                             nfts.map((nft) => (
-                                <div key={nanoid(5)} className="col-auto _nft-cards">
+                                <div key={nft.customId} className="col-auto _nft-cards">
                                     <div className="nft-img-wrap">
-                                        <img src={nft.uri} alt="" />
+                                        <img src={nft.data?.image} alt={nft.data?.name} />
                                     </div>
                                     <p className="yield">
-                                        {attrib}: <span>1600</span>
+                                        Name: <span>{nft.data?.name}</span>
                                     </p>
+                                    {nft.data?.attributes?.map((attr) => (
+                                        <p className="yield" key={attr.trait_type}>
+                                            {attr.trait_type}: <span>{attr.value}</span>
+                                        </p>
+                                    ))}
 
                                     {btnText && (
                                         <div className="nft-btn">
                                             <PBButton
-                                                method={() =>
-                                                    onSelectingNftHandler(nft.tokenId, type)
-                                                }
+                                                method={() => onSelectingNftHandler(nft.id, type)}
                                                 text={nft.selected ? 'Selected' : btnText}
                                                 font="Outfit"
                                                 textColor="black"
@@ -761,20 +950,25 @@ const Staking = () => {
                         >
                             {nfts.length > 0 &&
                                 nfts.map((nft) => (
-                                    <SwiperSlide key={nanoid(5)}>
+                                    <SwiperSlide key={nft.customId}>
                                         <div className="col-auto _nft-cards">
                                             <div className="nft-img-wrap">
-                                                <img src={nft.uri} alt="" />
+                                                <img src={nft.data?.image} alt={nft.data?.name} />
                                             </div>
                                             <p className="yield">
-                                                {attrib}: <span>1600</span>
+                                                Name: <span>{nft.data?.name}</span>
                                             </p>
+                                            {nft.data?.attributes?.map((attr) => (
+                                                <p className="yield" key={attr.trait_type}>
+                                                    {attr.trait_type}: <span>{attr.value}</span>
+                                                </p>
+                                            ))}
 
                                             {btnText && (
                                                 <div className="nft-btn">
                                                     <PBButton
                                                         method={() =>
-                                                            onSelectingNftHandler(nft.tokenId, type)
+                                                            onSelectingNftHandler(nft.id, type)
                                                         }
                                                         text={nft.selected ? 'Selected' : btnText}
                                                         font="Outfit"
@@ -937,20 +1131,21 @@ const Staking = () => {
         if (activeTab === 'vault') {
             return (
                 <>
-                    {vault(
-                        'GAME BALANCE',
-                        `In-Game ${TOKEN_SYMOBL} available to withdraw`,
-                        inGameBal,
-                        'Withdraw to erc-20',
-                        onWithdrawInGame
-                    )}
-                    {vault(
-                        'ERC-20 BALANCE',
-                        `ERC-20 ${TOKEN_SYMOBL} available to deposit`,
-                        ercBal,
-                        'Deposit to game',
-                        onDepositERC
-                    )}
+                    <VaultForm
+                        title="GAME BALANCE"
+                        subtitle={`In-Game ${TOKEN_SYMOBL} available to withdraw`}
+                        balance={inGameBal}
+                        btnText="Withdraw to erc-20"
+                        method={onWithdrawInGame}
+                        disabled={parseFloat(inGameBal) <= 0}
+                    />
+                    <VaultForm
+                        title="ERC-20 BALANCE"
+                        subtitle={`ERC-20 ${TOKEN_SYMOBL} available to deposit`}
+                        balance={ercBal}
+                        btnText="Deposit to game"
+                        method={onDepositERC}
+                    />
                 </>
             );
         }
