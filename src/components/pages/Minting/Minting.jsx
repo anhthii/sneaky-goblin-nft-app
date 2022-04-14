@@ -32,7 +32,7 @@ const Mintng = () => {
         localEnv.chainName.toLowerCase(),
         localEnv.infuraId
     );
-    let mintingContract = new ethers.Contract(
+    const mintingContract = new ethers.Contract(
         localEnv.mintingContract,
         MintingRouter.abi,
         infuraProvider
@@ -66,7 +66,7 @@ const Mintng = () => {
     const [tokenStatusMsg, setTokenStatusMsg] = useState('');
     const [currentSaleStatusMsg, setCurrentSaleStatusMsg] = useState('');
     const [retrigger, setRetrigger] = useState(false);
-    const [areSaleDetailsSet, setSaleDetailsFlag] = useState(false);
+    const [saleDetailsSetFlag, setSaleDetailsSetFlag] = useState(false);
     // Contract states
     const [nftContractSigner, setNftContractSigner] = useState(null);
     const [mintingContractSigner, setMintingContractSigner] = useState(null);
@@ -77,8 +77,8 @@ const Mintng = () => {
     useEffect(() => {
         // Setting sale round details
         mintingContract.saleRound().then(function (data) {
-            if (!areSaleDetailsSet) {
-                setSaleDetailsFlag(true);
+            if (!saleDetailsSetFlag) {
+                setSaleDetailsSetFlag(true);
                 const {
                     price,
                     enabled,
@@ -96,12 +96,12 @@ const Mintng = () => {
 
                 const priceInEther = ethers.utils.formatEther(price);
                 setTotalAmountToPayUI(priceInEther);
-                setPricePerMint(ethers.utils.parseEther(priceInEther));
+                setPricePerMint(price);
                 setUnitPrice(price);
-                setTotalTokens(totalAmount.toNumber());
+                setTotalTokens(+totalAmount);
                 setCurrentSaleType(saleType);
-                setMaxPerMint(maxAmountPerMint.toNumber());
-                setLimitPerWallet(limitAmountPerWallet.toNumber());
+                setMaxPerMint(+maxAmountPerMint);
+                setLimitPerWallet(+limitAmountPerWallet);
                 if (saleType === SALE_TYPE.WHITELIST) setCurrentSaleStatusMsg('PRE-SALE');
                 if (saleType === SALE_TYPE.PUBLIC) setCurrentSaleStatusMsg('PUBLIC SALE');
             }
@@ -115,7 +115,7 @@ const Mintng = () => {
                 setTokenStatusMsg('Sold out!');
             }
         });
-    });
+    }, []);
 
     useEffect(() => {
         if (isConnected) {
