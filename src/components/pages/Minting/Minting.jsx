@@ -115,7 +115,6 @@ const Mintng = () => {
 
         // Get totalSupply (aka number of tokens that have been minted)
         nftContract.MAX_SUPPLY().then(function (maxSupply) {
-            console.log("MAX SUPPLY", maxSupply);
             setMaxSupply(maxSupply.toNumber())
         });
 
@@ -182,7 +181,6 @@ const Mintng = () => {
                     setTotalAmountToPayUI(priceInEther);
                     setPricePerMint(ethers.utils.parseEther(priceInEther));
                     setUnitPrice(price);
-                    setTotalTokens(totalAmount.toNumber());
                     setCurrentSaleType(saleType);
                     setMaxPerMint(maxAmountPerMint.toNumber());
                     setLimitPerWallet(limitAmountPerWallet.toNumber());
@@ -213,7 +211,6 @@ const Mintng = () => {
                 ethersProvider.disconnect();
                 setMsg(`Disconnected. Please connect to ${localEnv.chainName} first!`, 'warning');
                 // setTotalAmountToPayUI(0);
-                // setTotalTokens(0);
                 // setTokensLeft(0);
                 // setdefValueUI(1);
                 // setMaxPerMint(0);
@@ -423,7 +420,7 @@ const Mintng = () => {
                                     </div>
                                     <div className="col-4">
                                         <p className="mint-box-remaining-data">
-                                            {totalSupply}/{maxSupply}
+                                            {maxSupply - totalSupply}/{maxSupply}
                                         </p>
                                         <p className="mint-box-sub-remaining d-md-block d-lg-none">
                                             REMAINING
