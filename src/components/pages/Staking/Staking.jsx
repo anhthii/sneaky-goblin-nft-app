@@ -117,7 +117,7 @@ const Staking = () => {
         let uri = await _nftContractSigner.tokenURI(0);
         if (revealed === true) { 
             // convert url to uri. (e.g. https://example.com/path/1 to https://example.com/path/)
-            uri = uri.substring(0, url.lastIndexOf('/'));
+            uri = uri.substring(0, uri.lastIndexOf('/'));
         }
 
         const _nftBalance = +(await _nftContractSigner.balanceOf(address));
@@ -129,7 +129,13 @@ const Staking = () => {
             try {
                 const tokenId = await _nftContractSigner.tokenOfOwnerByIndex(address, tokenIndex);
                 const tokenURI = revealed ? `${uri}/${tokenId}`: uri;
-                const data = await fetch(tokenURI).then((res) => res.json());
+                let data;
+                try {
+                    data = await fetch(tokenURI).then((res) => res.json());
+                } catch (e) {
+                    console.error("Failed to get metadata", e);
+                    data = {};
+                }
                 // Save
                 _allNftUserOwns.push({
                     customId: nanoid(5),
@@ -216,7 +222,7 @@ const Staking = () => {
         setMsg('Please confirm - Unstaking your NFT(s).', 'success', 5000);
 
         try {
-            const tx = await stakingContractSigner.withdraw(localEnv.nftContract, selectedNFT);
+            const tx = await stakingContractSigner.withdraw(magicContractType, selectedNFT);
             setIsUpdatingData(true);
             await tx.wait();
             setTimeout(async () => {
@@ -230,6 +236,7 @@ const Staking = () => {
             setMsg('All NFTs were unstaked!', 'success', 1500);
         } catch (e) {
             setStakingProcessStarted(false);
+            console.error(e);
         }
     };
 
@@ -419,6 +426,7 @@ const Staking = () => {
             await unstakerHelper();
         } catch (e) {
             setMsg(e.data?.message ?? e.message, 'warning');
+            console.error(e);
         }
     };
 
@@ -432,7 +440,7 @@ const Staking = () => {
     // Handles erc deposit
     const onDepositERC = async (amount) => {
         const ercAmount = ethers.utils.parseEther(amount);
-        await tokenContractSigner.depositToken(address, ercAmount);
+        await tokenContractSigner.depositToken(ercAmount);
         await getErcBal();
     };
 
