@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 // Components
 import Connector from '../../../core/Connector/Connector';
@@ -16,6 +17,8 @@ import backArrow from '../../../../assets/imgs/back-arrow.svg';
 import './StakingNavigation.scss';
 
 const StakingNavigation = () => {
+    const navigate = useNavigate();
+    const navigateTo = (route, options) => () => navigate(route, options);
     // States
     const [showMenu, setShowMenu] = useState(false);
     const [showMobileFooter, setShowMobileFooter] = useState(true);
@@ -41,8 +44,8 @@ const StakingNavigation = () => {
                     >
                         <ul className="navbar-nav">
                             <li className="nav-item">
-                                <div className="logo-wrapper">
-                                    <img src={stakingLogo} alt="" />
+                                <div className="logo-wrapper" onClick={navigateTo("/")}>
+                                    <img src={stakingLogo} alt="Goblinverse Invasion" />
                                     {/* This is hidden visually, for SEO*/}
                                     <h1 id="MainTextBrand">Goblinverse Invasion</h1>
                                 </div>
@@ -58,22 +61,14 @@ const StakingNavigation = () => {
 
                         <ul className="navbar-nav custom-nav right">
                             <li className="nav-item">
-                                <a
-                                    className="nav-link"
-                                    href="#"
-                                    // onClick={() => navigate('/stake', { state: '#invasion' })}
-                                >
+                                <Link to="/" className="nav-link">
                                     Home
-                                </a>
+                                </Link>
                             </li>
                             <li className="nav-item">
-                                <a
-                                    className="nav-link active"
-                                    href="#"
-                                    // onClick={() => navigate('/stake', { state: '#vault' })}
-                                >
+                                <Link to="/stake" className="nav-link active">
                                     Staking Platform
-                                </a>
+                                </Link>
                             </li>
                             <li className="nav-item">
                                 <a
@@ -122,11 +117,11 @@ const StakingNavigation = () => {
                         </div>
                     </div>
                     <div className="col-6">
-                        <a className="" href="#">
+                        <Link to="/" className="">
                             <div className="logo-wrapper">
                                 <img src={stakingLogoMob} alt="" />
                             </div>
-                        </a>
+                        </Link>
                     </div>
                     <div className="col-3">
                         <div className="mobile-connect-wrap">
@@ -153,7 +148,7 @@ const StakingNavigation = () => {
             {/* Full Overlay - Mobile Menu */}
             <div id="MobileMenu" className={showMenu ? 'show d-block d-lg-none' : 'hide'}>
                 <div className="mobile-menu-link-wrap">
-                    <p>Home</p>
+                    <p onClick={navigateTo('/')}>Home</p>
                     <p>Staking Platform</p>
                     <p>Marketplace</p>
                 </div>

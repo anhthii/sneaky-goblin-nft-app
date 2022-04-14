@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { nanoid } from 'nanoid';
+import { Link } from 'react-router-dom';
 
 // Components
 import Connector from '../../../core/Connector/Connector';
@@ -387,13 +388,13 @@ const MintNavigation = () => {
                             </li>
                         </ul>
 
-                        <a className="navbar-brand d-none d-lg-block" href="#">
+                        <Link to="/" className="navbar-brand d-none d-lg-block">
                             <div className="logo-wrapper">
-                                <img src={sgLogo} alt="" />
+                                <img src={sgLogo} alt="SneakyGoblins" />
                             </div>
                             {/* This is hidden visually, for SEO*/}
                             <h1 id="MainTextBrand">SneakyGoblins</h1>
-                        </a>
+                        </Link>
 
                         <ul className="navbar-nav custom-nav right">
                             <div className="spacer-last" />
@@ -453,11 +454,11 @@ const MintNavigation = () => {
                         </div>
                     </div>
                     <div className="col-4">
-                        <a className="" href="#">
+                        <Link to="/" className="">
                             <div className="logo-wrapper">
                                 <img src={sgLogo} alt="" />
                             </div>
-                        </a>
+                        </Link>
                     </div>
                     <div className="col-4">
                         <div className="connector-wrap-mobile">
