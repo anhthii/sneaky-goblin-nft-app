@@ -69,6 +69,7 @@ const Staking = () => {
     const [inGameBal, setInGameBal] = useState('0');
     const [ercBal, setErcBal] = useState('0');
     // Staking States ------
+    const [stakedPercentage, setStakedPercentage] = useState("n/a");
     const [selectedNFT, setSelectedNFT] = useState([]);
     const [stakingProcessStarted, setStakingProcessStarted] = useState(false);
     const [isStakingActive, setIsStakingActive] = useState(false);
@@ -273,6 +274,10 @@ const Staking = () => {
             const _isStakingActive = await _stakingContractSigner.stakingLaunched();
             if (_isStakingActive) setIsStakingActive(true);
 
+            const _nftTotalSupply = await _nftContractSigner.totalSupply();
+            const _stakeContractBalance = await _nftContractSigner.balanceOf(_stakingContractSigner.address);
+            setStakedPercentage( Math.round(_stakeContractBalance / _nftTotalSupply.toNumber() * 100) );
+            
             setStakingContractSigner(_stakingContractSigner);
             setTokenContractSigner(_tokenContractSigner);
             setNftContractSigner(_nftContractSigner);
@@ -585,7 +590,7 @@ const Staking = () => {
     const hqStats = () => (
         <div className={`_hq-stats ${activeTab !== 'vault' ? 'notvault' : ''}`}>
             <p className="title">HEADQUARTER STATS</p>
-            <p className="sub">Supply Staked: 88% of all Goblins</p>
+            <p className="sub">Supply Staked: { stakedPercentage }% of all Goblins</p>
             <div className="stats-wrap">{_hqStatsData()}</div>
         </div>
     );
@@ -595,7 +600,7 @@ const Staking = () => {
         <div className="col-12">
             <div className="_hq-stats-mobile">
                 <p className="title">HEADQUARTER STATS</p>
-                <p className="sub">Supply Staked: 88% of all Goblins</p>
+                <p className="sub">Supply Staked: { stakedPercentage }% of all Goblins</p>
                 <div className="stats-wrap">{_hqStatsData()}</div>
             </div>
         </div>
