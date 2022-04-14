@@ -518,7 +518,7 @@ const Staking = () => {
                                 <p>
                                     <span>The Goblinverse Invasion Campaign</span> could not be
                                     traced! <br />
-                                    {!isMetamaskInstalled && isLarge && (
+                                    {!isMetamaskInstalled && (
                                         <>
                                             Please install <span>Metamask</span> or use the Wallet
                                             Browser Dapp
