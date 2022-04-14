@@ -36,6 +36,12 @@ const Mintng = () => {
         localEnv.mintingContract,
         MintingRouter.abi,
         infuraProvider
+    );    
+
+    const nftContract = new ethers.Contract(
+        localEnv.nftContract,
+        NFT.abi,
+        infuraProvider
     );
     // Responsive width
     const isTabletOrMobile = useMediaQuery({ query: '(max-width: 992px)' });
@@ -62,7 +68,8 @@ const Mintng = () => {
     const [maxPerMint, setMaxPerMint] = useState(0);
     const [limitPerWallet, setLimitPerWallet] = useState(0);
     const [tokensLeft, setTokensLeft] = useState(0);
-    const [totalTokens, setTotalTokens] = useState(0);
+    const [totalSupply, setTotalSupply] = useState(0);
+    const [maxSupply, setMaxSupply] = useState(0);
     const [tokenStatusMsg, setTokenStatusMsg] = useState('');
     const [currentSaleStatusMsg, setCurrentSaleStatusMsg] = useState('');
     const [retrigger, setRetrigger] = useState(false);
@@ -98,7 +105,6 @@ const Mintng = () => {
                 setTotalAmountToPayUI(priceInEther);
                 setPricePerMint(price);
                 setUnitPrice(price);
-                setTotalTokens(+totalAmount);
                 setCurrentSaleType(saleType);
                 setMaxPerMint(+maxAmountPerMint);
                 setLimitPerWallet(+limitAmountPerWallet);
@@ -107,12 +113,28 @@ const Mintng = () => {
             }
         });
 
+        // Get totalSupply (aka number of tokens that have been minted)
+        nftContract.MAX_SUPPLY().then(function (maxSupply) {
+            setMaxSupply(maxSupply.toNumber())
+        });
+
+        // Get totalSupply (aka number of tokens that have been minted)
+        nftContract.totalSupply().then(function (totalSupply) {
+            const numTotalSupply = totalSupply.toNumber();
+            setTotalSupply(numTotalSupply);
+            if (numTotalSupply === maxSupply) {
+                setMintingActive(false);
+                setTokenStatusMsg('Sold out!');
+            }
+        });
+
+        // Check for sale round being sold out.
         mintingContract.tokensLeft().then(function (tokensLeft) {
             const numTokensLeft = tokensLeft.toNumber();
             setTokensLeft(numTokensLeft);
             if (numTokensLeft === 0) {
                 setMintingActive(false);
-                setTokenStatusMsg('Sold out!');
+                setTokenStatusMsg('Sale round sold out!');
             }
         });
     }, []);
@@ -159,7 +181,6 @@ const Mintng = () => {
                     setTotalAmountToPayUI(priceInEther);
                     setPricePerMint(ethers.utils.parseEther(priceInEther));
                     setUnitPrice(price);
-                    setTotalTokens(totalAmount.toNumber());
                     setCurrentSaleType(saleType);
                     setMaxPerMint(maxAmountPerMint.toNumber());
                     setLimitPerWallet(limitAmountPerWallet.toNumber());
@@ -190,7 +211,6 @@ const Mintng = () => {
                 ethersProvider.disconnect();
                 setMsg(`Disconnected. Please connect to ${localEnv.chainName} first!`, 'warning');
                 // setTotalAmountToPayUI(0);
-                // setTotalTokens(0);
                 // setTokensLeft(0);
                 // setdefValueUI(1);
                 // setMaxPerMint(0);
@@ -400,7 +420,7 @@ const Mintng = () => {
                                     </div>
                                     <div className="col-4">
                                         <p className="mint-box-remaining-data">
-                                            {tokensLeft}/{totalTokens}
+                                            {maxSupply - totalSupply}/{maxSupply}
                                         </p>
                                         <p className="mint-box-sub-remaining d-md-block d-lg-none">
                                             REMAINING
