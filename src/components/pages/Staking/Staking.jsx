@@ -33,6 +33,7 @@ import NFTStaking from '../../../data/abis/NFTStaking.json';
 import Token from '../../../data/abis/Token.json';
 
 const Staking = () => {
+    const magicContractType = 0; // Signifies it's the contract of the first nft collection
     const localEnv = getAllLocalEnv();
     const {
         ethers,
@@ -101,10 +102,8 @@ const Staking = () => {
     };
 
     const getDailyYield = async (stakingContractSigner) => {
-        const staker = await stakingContractSigner.stakers(address);
-        const { currentYield } = staker;
+        const currentYield = await stakingContractSigner.getCurrentYield(address);
         const formattedCurrentYield = ethers.utils.formatEther(currentYield);
-
         setDailyYield(formattedCurrentYield);
     };
 
@@ -114,6 +113,13 @@ const Staking = () => {
     };
 
     const getAllUserNFT = async (_nftContractSigner = nftContractSigner) => {
+        const revealed = await _nftContractSigner.revealed();
+        let uri = await _nftContractSigner.tokenURI(0);
+        if (revealed === true) { 
+            // convert url to uri. (e.g. https://example.com/path/1 to https://example.com/path/)
+            uri = uri.substring(0, url.lastIndexOf('/'));
+        }
+
         const _nftBalance = +(await _nftContractSigner.balanceOf(address));
         if (_nftBalance <= 0) return setAllNftUserOwn([]);
 
@@ -122,10 +128,8 @@ const Staking = () => {
         for (let tokenIndex = 0; tokenIndex < _nftBalance; tokenIndex++) {
             try {
                 const tokenId = await _nftContractSigner.tokenOfOwnerByIndex(address, tokenIndex);
-                const tokenURI = await _nftContractSigner.tokenURI(tokenId);
-                const uri = tokenURI.includes('...') ? '0' : tokenURI;
-                const data = uri === '0' ? {} : await fetch(uri).then((res) => res.json());
-
+                const tokenURI = revealed ? `${uri}/${tokenId}`: uri;
+                const data = await fetch(tokenURI).then((res) => res.json());
                 // Save
                 _allNftUserOwns.push({
                     customId: nanoid(5),
@@ -136,7 +140,7 @@ const Staking = () => {
                     stakedData: null,
                 });
             } catch (e) {
-                console.log('INITIAL:#0:', e);
+                console.error('Error:', e);
             }
         }
 
@@ -149,7 +153,7 @@ const Staking = () => {
     ) => {
         try {
             const _stakedNFTS = await _stakingContractSigner.getStakerTokens(
-                localEnv.nftContract,
+                magicContractType,
                 address
             );
             if (_stakedNFTS.length <= 0) {
@@ -183,7 +187,7 @@ const Staking = () => {
             // if (!isInitialProcessDone) setIsInitialProcessDone(true);
         } catch (e) {
             setStakingProcessStarted(false);
-            console.log('INITIAL:#1:', e);
+            console.error('INITIAL:#1:', e);
         }
     };
 
@@ -191,7 +195,7 @@ const Staking = () => {
         setMsg('Please confirm - Staking your NFT(s).', 'success', 5000);
 
         try {
-            const tx = await stakingContractSigner.deposit(localEnv.nftContract, selectedNFT);
+            const tx = await stakingContractSigner.deposit(magicContractType, selectedNFT);
             setIsUpdatingData(true);
             await tx.wait();
             setTimeout(async () => {
@@ -205,6 +209,7 @@ const Staking = () => {
             setMsg('All NFTs were staked!', 'success', 1500);
         } catch (e) {
             setStakingProcessStarted(false);
+            console.error(e);
         }
     };
     const unstakerHelper = async () => {
