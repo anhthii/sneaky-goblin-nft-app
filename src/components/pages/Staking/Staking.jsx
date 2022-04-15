@@ -10,6 +10,7 @@ import axios from 'axios';
 import PBButton from '../../ui/PBButton/PBButton';
 import Connector from '../../core/Connector/Connector';
 import VaultForm from './VaultForm';
+import Loader from '../../ui/Loader';
 
 // Layouts
 import HowToPlay from '../_layouts/HowToPlay/HowToPlay';
@@ -84,6 +85,9 @@ const Staking = () => {
     const [stakingContractSigner, setStakingContractSigner] = useState(null);
     const [tokenContractSigner, setTokenContractSigner] = useState(null);
     const [dailyYield, setDailyYield] = useState('0');
+    // Loaders
+    const [loadingUserNFTs, setLoadingUserNFTs] = useState(true);
+    const [loadingStakedTokens, setLoadingStakedTokens] = useState(true);
 
     // DUMMY DATA, SHOULD BE DELETED
     // uncomment allNftUserOwns and stakedNFTS above after you delete these 2
@@ -115,49 +119,55 @@ const Staking = () => {
     };
 
     const getAllUserNFT = async (_nftContractSigner = nftContractSigner) => {
-        const revealed = await _nftContractSigner.revealed();
-        let uri = await _nftContractSigner.tokenURI(0);
-        if (revealed === true) {
-            // convert url to uri. (e.g. https://example.com/path/1 to https://example.com/path/)
-            uri = uri.substring(0, uri.lastIndexOf('/'));
+        setLoadingUserNFTs(true);
+        try {
+            const revealed = await _nftContractSigner.revealed();
+            let uri = await _nftContractSigner.tokenURI(0);
+            if (revealed === true) {
+                // convert url to uri. (e.g. https://example.com/path/1 to https://example.com/path/)
+                uri = uri.substring(0, uri.lastIndexOf('/'));
+            }
+
+            const _nftBalance = +(await _nftContractSigner.balanceOf(address));
+            if (_nftBalance <= 0) return setAllNftUserOwn([]);
+
+            const idsPromises = [...Array(_nftBalance).keys()].map((index) =>
+                _nftContractSigner.tokenOfOwnerByIndex(address, index)
+            );
+
+            const tokenIds = await Promise.all(idsPromises);
+
+            const tokenURIs = [];
+            const dataPromises = tokenIds.map((id) => {
+                const tokenURI = revealed ? `${uri}/${id}` : uri;
+                tokenURIs.push(tokenURI);
+                return axios.get(tokenURI);
+            });
+
+            const results = await Promise.all(dataPromises);
+
+            const _allNftUserOwns = results.map(({ data }, idx) => ({
+                customId: nanoid(5),
+                id: tokenIds[idx],
+                uri: tokenURIs[idx],
+                data,
+                stakeStatus: false,
+                stakedData: null,
+            }));
+
+            setAllNftUserOwn(_allNftUserOwns);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoadingUserNFTs(false);
         }
-
-        const _nftBalance = +(await _nftContractSigner.balanceOf(address));
-        if (_nftBalance <= 0) return setAllNftUserOwn([]);
-
-        const idsPromises = [];
-        [...Array(_nftBalance).keys()].forEach((index) => {
-            idsPromises.push(_nftContractSigner.tokenOfOwnerByIndex(address, index));
-        });
-
-        const tokenIds = await Promise.all(idsPromises);
-
-        const dataPromises = [];
-        const tokenURIs = [];
-        tokenIds.forEach((id) => {
-            const tokenURI = revealed ? `${uri}/${id}` : uri;
-            tokenURIs.push(tokenURI);
-            dataPromises.push(axios.get(tokenURI));
-        });
-
-        const results = await Promise.all(dataPromises);
-
-        const _allNftUserOwns = results.map(({ data }, idx) => ({
-            customId: nanoid(5),
-            id: tokenIds[idx],
-            uri: tokenURIs[idx],
-            data,
-            stakeStatus: false,
-            stakedData: null,
-        }));
-
-        setAllNftUserOwn(_allNftUserOwns);
     };
 
     const getStakedTokens = async (
         _stakingContractSigner = stakingContractSigner,
         _nftContractSigner = nftContractSigner
     ) => {
+        setLoadingStakedTokens(true);
         try {
             const _stakedNFTS = await _stakingContractSigner.getStakerTokens(
                 magicContractType,
@@ -171,17 +181,13 @@ const Staking = () => {
                 return setStakedNFTS([]);
             }
 
-            const idsPromises = [];
-            _stakedNFTS.forEach((id) => {
-                idsPromises.push(_nftContractSigner.tokenURI(id));
-            });
+            const idsPromises = _stakedNFTS.map((id) => _nftContractSigner.tokenURI(id));
 
             const tokenURIs = await Promise.all(idsPromises);
 
-            const dataPromises = [];
-            tokenURIs.forEach((tokenURI) => {
+            const dataPromises = tokenURIs.map((tokenURI) => {
                 const uri = tokenURI.includes('...') ? '0' : tokenURI;
-                dataPromises.push(uri === '0' ? {} : axios.get(uri));
+                return uri === '0' ? {} : axios.get(uri);
             });
 
             const results = await Promise.all(dataPromises);
@@ -201,6 +207,8 @@ const Staking = () => {
         } catch (e) {
             setStakingProcessStarted(false);
             console.error('INITIAL:#1:', e);
+        } finally {
+            setLoadingStakedTokens(false);
         }
     };
 
@@ -837,24 +845,37 @@ const Staking = () => {
                         <div className="col-12 mix">
                             {type === 'unstaked' ? (
                                 <div className="sub">
-                                    <p>
-                                        You don’t have any Goblins Reserve. Recruit more on{' '}
-                                        <span>
-                                            <a
-                                                href="https://opensea.io"
-                                                target="_blank"
-                                                rel="noreferrer noopener"
-                                            >
-                                                Opensea
-                                            </a>
-                                        </span>
-                                    </p>
+                                    {loadingStakedTokens ? (
+                                        <p>
+                                            <Loader />
+                                        </p>
+                                    ) : (
+                                        <p>
+                                            You don’t have any Goblins Reserve. Recruit more on{' '}
+                                            <span>
+                                                <a
+                                                    href="https://opensea.io"
+                                                    target="_blank"
+                                                    rel="noreferrer noopener"
+                                                >
+                                                    Opensea
+                                                </a>
+                                            </span>
+                                        </p>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="sub">
-                                    <p>
-                                        You haven’t sent any Goblins to the invasion campaign yet.
-                                    </p>
+                                    {loadingUserNFTs ? (
+                                        <p>
+                                            <Loader />
+                                        </p>
+                                    ) : (
+                                        <p>
+                                            You haven’t sent any Goblins to the invasion campaign
+                                            yet.
+                                        </p>
+                                    )}
                                     <br />
                                     <br />
                                 </div>
@@ -944,24 +965,37 @@ const Staking = () => {
                         <div className="col-12 mix">
                             {type === 'unstaked' ? (
                                 <div className="sub">
-                                    <p>
-                                        You don’t have any Goblins Reserve. Recruit more on{' '}
-                                        <span>
-                                            <a
-                                                href="https://opensea.io"
-                                                target="_blank"
-                                                rel="noreferrer noopener"
-                                            >
-                                                Opensea
-                                            </a>
-                                        </span>
-                                    </p>
+                                    {loadingStakedTokens ? (
+                                        <p>
+                                            <Loader />
+                                        </p>
+                                    ) : (
+                                        <p>
+                                            You don’t have any Goblins Reserve. Recruit more on{' '}
+                                            <span>
+                                                <a
+                                                    href="https://opensea.io"
+                                                    target="_blank"
+                                                    rel="noreferrer noopener"
+                                                >
+                                                    Opensea
+                                                </a>
+                                            </span>
+                                        </p>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="sub">
-                                    <p>
-                                        You haven’t sent any Goblins to the invasion campaign yet.
-                                    </p>
+                                    {loadingUserNFTs ? (
+                                        <p>
+                                            <Loader />
+                                        </p>
+                                    ) : (
+                                        <p>
+                                            You haven’t sent any Goblins to the invasion campaign
+                                            yet.
+                                        </p>
+                                    )}
                                     <br />
                                     <br />
                                 </div>
@@ -1035,21 +1069,41 @@ const Staking = () => {
             <p className="main d-block d-lg-none">
                 Stake your Goblins and join the <span> Goblinverse Invasaion.</span>
             </p>
-            <div className="sub">
-                <p>
-                    <span>Goblins Reserve (Unstaked):</span> You don’t have any Goblins Reserve.
-                    Recruit more on{' '}
-                    <span>
-                        <a href="https://opensea.io" target="_blank" rel="noreferrer noopener">
-                            Opensea
-                        </a>
-                    </span>
-                </p>
-                <p>
-                    <span>Goblins Invaders (Staked):</span> You haven’t sent any Goblins to the
-                    invasion campaign yet.
-                </p>
-            </div>
+            {loadingUserNFTs && loadingStakedTokens ? (
+                <Loader />
+            ) : (
+                <div className="sub">
+                    {loadingStakedTokens ? (
+                        <p>
+                            <Loader />
+                        </p>
+                    ) : (
+                        <p>
+                            <span>Goblins Reserve (Unstaked):</span> You don’t have any Goblins
+                            Reserve. Recruit more on{' '}
+                            <span>
+                                <a
+                                    href="https://opensea.io"
+                                    target="_blank"
+                                    rel="noreferrer noopener"
+                                >
+                                    Opensea
+                                </a>
+                            </span>
+                        </p>
+                    )}
+                    {loadingUserNFTs ? (
+                        <p>
+                            <Loader />
+                        </p>
+                    ) : (
+                        <p>
+                            <span>Goblins Invaders (Staked):</span> You haven’t sent any Goblins to
+                            the invasion campaign yet.
+                        </p>
+                    )}
+                </div>
+            )}
 
             <div className="btns-wrap">
                 <div className="container">
