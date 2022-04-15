@@ -80,6 +80,8 @@ const Staking = () => {
     // const [stakedNFTS, setStakedNFTS] = useState([]);
     // NFT States ----------
     const [isRevealed, setIsRevealed] = useState(false);
+    const [baseURI, setBaseURI] = useState('');
+    const [unrevealedData, setUnrevealedData] = useState(null);
     // Contract States -----
     const [nftContractSigner, setNftContractSigner] = useState(null);
     const [stakingContractSigner, setStakingContractSigner] = useState(null);
@@ -118,28 +120,42 @@ const Staking = () => {
         return floatFixer(ethers.utils.formatEther(total), 4);
     };
 
-    const getAllUserNFT = async (_nftContractSigner = nftContractSigner) => {
+    const getAllUserNFT = async (
+        _nftContractSigner = nftContractSigner,
+        _isRevealed = isRevealed,
+        _baseURI = baseURI,
+        _unrevealedData = unrevealedData
+    ) => {
         setLoadingUserNFTs(true);
         try {
-            const revealed = await _nftContractSigner.revealed();
-            let uri = await _nftContractSigner.tokenURI(0);
-            if (revealed === true) {
-                // convert url to uri. (e.g. https://example.com/path/1 to https://example.com/path/)
-                uri = uri.substring(0, uri.lastIndexOf('/'));
-            }
-
             const _nftBalance = +(await _nftContractSigner.balanceOf(address));
             if (_nftBalance <= 0) return setAllNftUserOwn([]);
 
             const idsPromises = [...Array(_nftBalance).keys()].map((index) =>
                 _nftContractSigner.tokenOfOwnerByIndex(address, index)
             );
-
             const tokenIds = await Promise.all(idsPromises);
 
+            if (!_isRevealed) {
+                const data = tokenIds.map((id) => ({
+                    customId: nanoid(5),
+                    id,
+                    uri: _baseURI,
+                    data: _unrevealedData,
+                    stakeStatus: false,
+                    stakedData: null,
+                }));
+
+                setAllNftUserOwn(data);
+                return;
+            }
+
+            const uri = _baseURI.substring(0, _baseURI.lastIndexOf('/'));
+
             const tokenURIs = [];
+
             const dataPromises = tokenIds.map((id) => {
-                const tokenURI = revealed ? `${uri}/${id}` : uri;
+                const tokenURI = `${uri}/${id}`;
                 tokenURIs.push(tokenURI);
                 return axios.get(tokenURI);
             });
@@ -165,7 +181,10 @@ const Staking = () => {
 
     const getStakedTokens = async (
         _stakingContractSigner = stakingContractSigner,
-        _nftContractSigner = nftContractSigner
+        _nftContractSigner = nftContractSigner,
+        _isRevealed = isRevealed,
+        _baseURI = baseURI,
+        _unrevealedData = unrevealedData
     ) => {
         setLoadingStakedTokens(true);
         try {
@@ -178,17 +197,31 @@ const Staking = () => {
                 //     setStakingProcessStarted(false);
                 //     setIsUpdatingData(false);
                 // }
-                return setStakedNFTS([]);
+                setStakedNFTS([]);
+                return;
+            }
+
+            if (!_isRevealed) {
+                const data = _stakedNFTS.map((id) => ({
+                    customId: nanoid(5),
+                    id,
+                    uri: _baseURI,
+                    data: _unrevealedData,
+                    stakeStatus: false,
+                    stakedData: null,
+                }));
+
+                setStakedNFTS(data);
+                return;
             }
 
             const idsPromises = _stakedNFTS.map((id) => _nftContractSigner.tokenURI(id));
 
             const tokenURIs = await Promise.all(idsPromises);
 
-            const dataPromises = tokenURIs.map((tokenURI) => {
-                const uri = tokenURI.includes('...') ? '0' : tokenURI;
-                return uri === '0' ? {} : axios.get(uri);
-            });
+            const dataPromises = tokenURIs.map((tokenURI) =>
+                tokenURI.includes('...') ? null : axios.get(tokenURI)
+            );
 
             const results = await Promise.all(dataPromises);
 
@@ -285,6 +318,15 @@ const Staking = () => {
 
             const _nftContractSigner = new ethers.Contract(localEnv.nftContract, NFT.abi, signer);
 
+            const _isRevealed = await _nftContractSigner.revealed();
+            const _baseURI = await _nftContractSigner.tokenURI(0); // TODO: Replace with getBaseUrl
+
+            let _unrevealedData = null;
+            if (!_isRevealed) {
+                _unrevealedData = await axios.get(_baseURI).then((res) => res.data);
+                setUnrevealedData(_unrevealedData);
+            }
+
             const _isStakingActive = await _stakingContractSigner.stakingLaunched();
             if (_isStakingActive) setIsStakingActive(true);
 
@@ -299,10 +341,18 @@ const Staking = () => {
             setStakingContractSigner(_stakingContractSigner);
             setTokenContractSigner(_tokenContractSigner);
             setNftContractSigner(_nftContractSigner);
+            setIsRevealed(_isRevealed);
+            setBaseURI(_baseURI);
             await getInGameBal(_tokenContractSigner);
             await getErcBal(_tokenContractSigner);
-            await getAllUserNFT(_nftContractSigner);
-            await getStakedTokens(_stakingContractSigner, _nftContractSigner);
+            await getAllUserNFT(_nftContractSigner, _isRevealed, _baseURI, _unrevealedData);
+            await getStakedTokens(
+                _stakingContractSigner,
+                _nftContractSigner,
+                _isRevealed,
+                _baseURI,
+                _unrevealedData
+            );
             await getDailyYield(_stakingContractSigner);
 
             // TODO: Get all user's NFT s/he owns and save in setAllNftUserOwn([])
