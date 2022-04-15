@@ -6,6 +6,9 @@ import { Link } from 'react-router-dom';
 import Connector from '../../../core/Connector/Connector';
 import Floater from '../../../ui/Floater/Floater';
 
+// Helpers
+import { getAllLocalEnv } from '../../../../helpers/dev/general-helpers';
+
 // Assets & Style
 import sgLogo from '../../../../assets/imgs/sg-logo.png';
 import discordLogo from '../../../../assets/imgs/discord.svg';
@@ -25,6 +28,8 @@ import artistRod from '../../../../assets/imgs/artist-rod.svg';
 import artistProfile from '../../../../assets/imgs/artist-profile.png';
 import './MintNavigation.scss';
 
+const localEnv = getAllLocalEnv();
+
 const MintNavigation = () => {
     // States
     const [showMenu, setShowMenu] = useState(false);
@@ -33,10 +38,10 @@ const MintNavigation = () => {
     const [pageContentType, setPageContentType] = useState('');
     // Social Medias
     const [socials] = useState({
-        discord: '#',
-        opensea: '#',
-        insta: '#',
-        twitter: '#',
+        discord: 'https://discord.gg/SneakyGoblins',
+        opensea: 'https://opensea.io/collection/sneakygoblins',
+        insta: 'https://instagram.com/SneakyGoblinsNFT',
+        twitter: 'https://twitter.com/SneakyGoblinNFT',
     });
     // Roadmap data
     const [roadmapData] = useState([
