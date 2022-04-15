@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useContext, useState, Fragment } from 'react';
+import React, { useEffect, useCallback, useContext, useState, useMemo } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { nanoid } from 'nanoid';
 import { Pagination } from 'swiper';
@@ -70,6 +70,8 @@ const Staking = () => {
     const [activeSubTab, setActiveSubTab] = useState('');
     const [inGameBal, setInGameBal] = useState('0');
     const [ercBal, setErcBal] = useState('0');
+    const [dailyYield, setDailyYield] = useState('0');
+    const totalBalance = useMemo(() => floatFixer(+ercBal + +inGameBal, 4), [ercBal, inGameBal]);
     // Staking States ------
     const [stakedPercentage, setStakedPercentage] = useState('n/a');
     const [selectedNFT, setSelectedNFT] = useState([]);
@@ -86,10 +88,18 @@ const Staking = () => {
     const [nftContractSigner, setNftContractSigner] = useState(null);
     const [stakingContractSigner, setStakingContractSigner] = useState(null);
     const [tokenContractSigner, setTokenContractSigner] = useState(null);
-    const [dailyYield, setDailyYield] = useState('0');
     // Loaders
     const [loadingUserNFTs, setLoadingUserNFTs] = useState(true);
     const [loadingStakedTokens, setLoadingStakedTokens] = useState(true);
+    // Buttons
+    const [withdrawBtnDisabled, setWithdrawBtnDisabled] = useState(false);
+    const [withdrawBtnText, setWithdrawBtnText] = useState('Withdraw to ERC-20');
+    const [depositBtnDisabled, setDepositBtnDisabled] = useState(false);
+    const [depositBtnText, setDepositBtnText] = useState('Deposit to game');
+    const [stakingBtnDisabled, setStakingBtnDisabled] = useState(false);
+    const [stakingBtnText, setStakingBtnText] = useState('Approve Invaders');
+    const [unstakingBtnDisabled, setUnstakingBtnDisabled] = useState(false);
+    const [unstakingBtnText, setUnstakingBtnText] = useState('Approve Deserters');
 
     // DUMMY DATA, SHOULD BE DELETED
     // uncomment allNftUserOwns and stakedNFTS above after you delete these 2
@@ -99,25 +109,20 @@ const Staking = () => {
     // Helpers >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     const getInGameBal = async (_tokenContractSigner = tokenContractSigner) => {
         const _inGameBal = await _tokenContractSigner.getUserBalance(address);
-        const formattedInGameBal = ethers.utils.formatEther(_inGameBal);
+        const formattedInGameBal = floatFixer(ethers.utils.formatEther(_inGameBal), 4);
         setInGameBal(formattedInGameBal);
     };
 
     const getErcBal = async (_tokenContractSigner = tokenContractSigner) => {
         const _ercBal = await _tokenContractSigner.balanceOf(address);
-        const formattedErcBal = ethers.utils.formatEther(_ercBal);
+        const formattedErcBal = floatFixer(ethers.utils.formatEther(_ercBal), 4);
         setErcBal(formattedErcBal);
     };
 
-    const getDailyYield = async (stakingContractSigner) => {
-        const currentYield = await stakingContractSigner.getCurrentYield(address);
+    const getDailyYield = async (_stakingContractSigner = stakingContractSigner) => {
+        const currentYield = await _stakingContractSigner.getCurrentYield(address);
         const formattedCurrentYield = ethers.utils.formatEther(currentYield);
         setDailyYield(formattedCurrentYield);
-    };
-
-    const getTotalBalance = () => {
-        const total = ethers.utils.parseEther(ercBal).add(ethers.utils.parseEther(inGameBal)); //
-        return floatFixer(ethers.utils.formatEther(total), 4);
     };
 
     const getAllUserNFT = async (
@@ -207,7 +212,7 @@ const Staking = () => {
                     id,
                     uri: _baseURI,
                     data: _unrevealedData,
-                    stakeStatus: false,
+                    stakeStatus: true,
                     stakedData: null,
                 }));
 
@@ -246,11 +251,14 @@ const Staking = () => {
     };
 
     const stakerHelper = async () => {
+        setStakingBtnDisabled(true);
+        setStakingBtnText('Confirm Transaction');
         setMsg('Please confirm - Staking your NFT(s).', 'success', 5000);
 
         try {
             const tx = await stakingContractSigner.deposit(magicContractType, selectedNFT);
             setIsUpdatingData(true);
+            setStakingBtnText('Unstaking...');
             await tx.wait();
             setTimeout(async () => {
                 setAllNftUserOwn([]);
@@ -262,16 +270,22 @@ const Staking = () => {
 
             setMsg('All NFTs were staked!', 'success', 1500);
         } catch (e) {
-            setStakingProcessStarted(false);
             console.error(e);
+        } finally {
+            setStakingProcessStarted(false);
+            setStakingBtnDisabled(false);
+            setStakingBtnText('Approve Invaders');
         }
     };
     const unstakerHelper = async () => {
+        setUnstakingBtnDisabled(true);
+        setUnstakingBtnText('Confirm Transaction');
         setMsg('Please confirm - Unstaking your NFT(s).', 'success', 5000);
 
         try {
             const tx = await stakingContractSigner.withdraw(magicContractType, selectedNFT);
             setIsUpdatingData(true);
+            setUnstakingBtnText('Staking...');
             await tx.wait();
             setTimeout(async () => {
                 setAllNftUserOwn([]);
@@ -283,8 +297,11 @@ const Staking = () => {
 
             setMsg('All NFTs were unstaked!', 'success', 1500);
         } catch (e) {
-            setStakingProcessStarted(false);
             console.error(e);
+        } finally {
+            setStakingProcessStarted(false);
+            setUnstakingBtnDisabled(false);
+            setUnstakingBtnText('Approve Deserters');
         }
     };
 
@@ -426,9 +443,9 @@ const Staking = () => {
 
         // Can only stake not-yet-staked NFTs, so if some of the selected NFTs are already staked...
         let _someAreStaked = false;
-        selectedNFT.forEach((_selectedNFT) => {
+        selectedNFT.forEach((_id) => {
             _someAreStaked = allNftUserOwns.some(
-                (nft) => nft.id === _selectedNFT && nft.stakeStatus
+                ({ id, stakeStatus }) => _id === id && stakeStatus
             );
         });
         if (_someAreStaked) {
@@ -471,7 +488,7 @@ const Staking = () => {
     };
 
     // Will handle unstaking of NFT(s)
-    const onUntakingHandler = async () => {
+    const onUnstakingHandler = async () => {
         if (!stakedNFTS.length) return;
 
         if (selectedNFT.length < 1) {
@@ -487,7 +504,7 @@ const Staking = () => {
         let _someAreNotStaked = false;
         selectedNFT.forEach((_id) => {
             _someAreNotStaked = stakedNFTS.some(
-                ({ id, stakeStatus }) => id === _id && !stakeStatus
+                ({ id, stakeStatus }) => _id === id && !stakeStatus
             );
         });
         if (_someAreNotStaked) {
@@ -505,16 +522,42 @@ const Staking = () => {
 
     // Handles withdrawal for erc20, converts in-game to erc
     const onWithdrawInGame = async (amount) => {
+        setWithdrawBtnDisabled(true);
+        setWithdrawBtnText('Confirm transaction...');
         const ercAmount = ethers.utils.parseEther(amount);
-        await tokenContractSigner.withdrawToken(ercAmount);
-        await getInGameBal();
+        try {
+            const tx = await tokenContractSigner.withdrawToken(ercAmount);
+            setWithdrawBtnText('Pending...');
+            await tx.wait();
+            setWithdrawBtnText('Updating balances...');
+            await getErcBal();
+            await getInGameBal();
+        } catch (e) {
+            setMsg(e.data?.message ?? e.message, 'warning');
+        } finally {
+            setWithdrawBtnDisabled(false);
+            setWithdrawBtnText('Withdraw to ERC-20');
+        }
     };
 
     // Handles erc deposit
     const onDepositERC = async (amount) => {
+        setDepositBtnDisabled(true);
+        setDepositBtnText('Confirm transaction...');
         const ercAmount = ethers.utils.parseEther(amount);
-        await tokenContractSigner.depositToken(ercAmount);
-        await getErcBal();
+        try {
+            const tx = await tokenContractSigner.depositToken(ercAmount);
+            setDepositBtnText('Pending...');
+            await tx.wait();
+            setDepositBtnText('Updating balances...');
+            await getErcBal();
+            await getInGameBal();
+        } catch (e) {
+            setMsg(e.data?.message ?? e.message, 'warning');
+        } finally {
+            setDepositBtnDisabled(false);
+            setDepositBtnText('Deposit to game');
+        }
     };
 
     // Inline >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -690,7 +733,7 @@ const Staking = () => {
                 </li>
                 <li>
                     <p>
-                        Total Balance: <span>{getTotalBalance()}</span>
+                        Total Balance: <span>{floatFixer(totalBalance, 4)}</span>
                     </p>
                 </li>
                 <li>
@@ -703,7 +746,7 @@ const Staking = () => {
                 </li>
             </ul>
         ),
-        [TOKEN_SYMOBL, inGameBal, ercBal, dailyYield]
+        [TOKEN_SYMOBL, inGameBal, ercBal, dailyYield, totalBalance]
     );
 
     // The How-to-Play data elements
@@ -813,7 +856,8 @@ const Staking = () => {
                                             <div className="col-12 col-lg-4 mx-auto approve">
                                                 <PBButton
                                                     method={onStakingHandler}
-                                                    text="Approve Invaders"
+                                                    text={stakingBtnText}
+                                                    disabled={stakingBtnDisabled}
                                                     font="Outfit"
                                                     textColor="black"
                                                     textSize={1.25}
@@ -840,8 +884,9 @@ const Staking = () => {
                                         <div className="row">
                                             <div className="col-12 col-lg-4 mx-auto approve">
                                                 <PBButton
-                                                    method={onUntakingHandler}
-                                                    text="Approve Deserters"
+                                                    method={onUnstakingHandler}
+                                                    text={unstakingBtnText}
+                                                    disabled={unstakingBtnDisabled}
                                                     font="Outfit"
                                                     textColor="black"
                                                     textSize={1.25}
@@ -866,7 +911,15 @@ const Staking = () => {
                 </div>
             );
         },
-        [activeSubTab, allNftUserOwns, stakedNFTS]
+        [
+            activeSubTab,
+            allNftUserOwns,
+            stakedNFTS,
+            stakingBtnDisabled,
+            stakingBtnText,
+            unstakingBtnDisabled,
+            unstakingBtnText,
+        ]
     );
 
     // Invasion: desktop nft cards reusable (todo: refactor put to _layouts dir)
@@ -1265,18 +1318,19 @@ const Staking = () => {
                 <>
                     <VaultForm
                         title="GAME BALANCE"
-                        subtitle={`In-Game ${TOKEN_SYMOBL} available to withdraw`}
+                        subtitle={`In-Game ${TOKEN_SYMOBL} available to withdraw (25% Tax)`}
                         balance={inGameBal}
-                        btnText="Withdraw to erc-20"
+                        btnText={withdrawBtnText}
                         method={onWithdrawInGame}
-                        disabled={parseFloat(inGameBal) <= 0}
+                        disabled={+inGameBal <= 0 || withdrawBtnDisabled}
                     />
                     <VaultForm
                         title="ERC-20 BALANCE"
                         subtitle={`ERC-20 ${TOKEN_SYMOBL} available to deposit`}
                         balance={ercBal}
-                        btnText="Deposit to game"
+                        btnText={depositBtnText}
                         method={onDepositERC}
+                        disabled={+ercBal <= 0 || depositBtnDisabled}
                     />
                 </>
             );
