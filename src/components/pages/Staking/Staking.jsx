@@ -151,6 +151,7 @@ const Staking = () => {
                     stakedData: null,
                 }));
 
+                setLoadingUserNFTs(false);
                 setAllNftUserOwn(data);
                 return;
             }
@@ -216,6 +217,8 @@ const Staking = () => {
                     stakedData: null,
                 }));
 
+                setStakingProcessStarted(false);
+                setLoadingStakedTokens(false);
                 setStakedNFTS(data);
                 return;
             }
@@ -243,9 +246,9 @@ const Staking = () => {
 
             // if (!isInitialProcessDone) setIsInitialProcessDone(true);
         } catch (e) {
-            setStakingProcessStarted(false);
             console.error('INITIAL:#1:', e);
         } finally {
+            setStakingProcessStarted(false);
             setLoadingStakedTokens(false);
         }
     };
@@ -1068,37 +1071,24 @@ const Staking = () => {
                         <div className="col-12 mix">
                             {type === 'unstaked' ? (
                                 <div className="sub">
-                                    {loadingStakedTokens ? (
-                                        <p>
-                                            <Loader />
-                                        </p>
-                                    ) : (
-                                        <p>
-                                            You don’t have any Goblins Reserve. Recruit more on{' '}
-                                            <span>
-                                                <a
-                                                    href="https://opensea.io"
-                                                    target="_blank"
-                                                    rel="noreferrer noopener"
-                                                >
-                                                    Opensea
-                                                </a>
-                                            </span>
-                                        </p>
-                                    )}
+                                    <p>
+                                        You don’t have any Goblins Reserve. Recruit more on{' '}
+                                        <span>
+                                            <a
+                                                href="https://opensea.io"
+                                                target="_blank"
+                                                rel="noreferrer noopener"
+                                            >
+                                                Opensea
+                                            </a>
+                                        </span>
+                                    </p>
                                 </div>
                             ) : (
                                 <div className="sub">
-                                    {loadingUserNFTs ? (
-                                        <p>
-                                            <Loader />
-                                        </p>
-                                    ) : (
-                                        <p>
-                                            You haven’t sent any Goblins to the invasion campaign
-                                            yet.
-                                        </p>
-                                    )}
+                                    <p>
+                                        You haven’t sent any Goblins to the invasion campaign yet.
+                                    </p>
                                     <br />
                                     <br />
                                 </div>
