@@ -42,6 +42,7 @@ const VaultForm = ({ title, subtitle, balance, btnText, method, disabled = false
                             type="number"
                             className="form-control amount text-right"
                             aria-label="Amount (to the nearest dollar)"
+                            min={0}
                             value={value}
                             onChange={handleChange}
                             disabled={disabled}
