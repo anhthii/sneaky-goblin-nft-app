@@ -6,6 +6,7 @@ import { Swiper, SwiperSlide } from 'swiper/react/swiper-react';
 import { Helmet } from 'react-helmet-async';
 
 // Components
+import axios from 'axios';
 import PBButton from '../../ui/PBButton/PBButton';
 import Connector from '../../core/Connector/Connector';
 import VaultForm from './VaultForm';
@@ -69,7 +70,7 @@ const Staking = () => {
     const [inGameBal, setInGameBal] = useState('0');
     const [ercBal, setErcBal] = useState('0');
     // Staking States ------
-    const [stakedPercentage, setStakedPercentage] = useState("n/a");
+    const [stakedPercentage, setStakedPercentage] = useState('n/a');
     const [selectedNFT, setSelectedNFT] = useState([]);
     const [stakingProcessStarted, setStakingProcessStarted] = useState(false);
     const [isStakingActive, setIsStakingActive] = useState(false);
@@ -116,7 +117,7 @@ const Staking = () => {
     const getAllUserNFT = async (_nftContractSigner = nftContractSigner) => {
         const revealed = await _nftContractSigner.revealed();
         let uri = await _nftContractSigner.tokenURI(0);
-        if (revealed === true) { 
+        if (revealed === true) {
             // convert url to uri. (e.g. https://example.com/path/1 to https://example.com/path/)
             uri = uri.substring(0, uri.lastIndexOf('/'));
         }
@@ -124,32 +125,31 @@ const Staking = () => {
         const _nftBalance = +(await _nftContractSigner.balanceOf(address));
         if (_nftBalance <= 0) return setAllNftUserOwn([]);
 
-        const _allNftUserOwns = [];
+        const idsPromises = [];
+        [...Array(_nftBalance).keys()].forEach((index) => {
+            idsPromises.push(_nftContractSigner.tokenOfOwnerByIndex(address, index));
+        });
 
-        for (let tokenIndex = 0; tokenIndex < _nftBalance; tokenIndex++) {
-            try {
-                const tokenId = await _nftContractSigner.tokenOfOwnerByIndex(address, tokenIndex);
-                const tokenURI = revealed ? `${uri}/${tokenId}`: uri;
-                let data;
-                try {
-                    data = await fetch(tokenURI).then((res) => res.json());
-                } catch (e) {
-                    console.error("Failed to get metadata", e);
-                    data = {};
-                }
-                // Save
-                _allNftUserOwns.push({
-                    customId: nanoid(5),
-                    id: +tokenId,
-                    uri,
-                    data,
-                    stakeStatus: false,
-                    stakedData: null,
-                });
-            } catch (e) {
-                console.error('Error:', e);
-            }
-        }
+        const tokenIds = await Promise.all(idsPromises);
+
+        const dataPromises = [];
+        const tokenURIs = [];
+        tokenIds.forEach((id) => {
+            const tokenURI = revealed ? `${uri}/${id}` : uri;
+            tokenURIs.push(tokenURI);
+            dataPromises.push(axios.get(tokenURI));
+        });
+
+        const results = await Promise.all(dataPromises);
+
+        const _allNftUserOwns = results.map(({ data }, idx) => ({
+            customId: nanoid(5),
+            id: tokenIds[idx],
+            uri: tokenURIs[idx],
+            data,
+            stakeStatus: false,
+            stakedData: null,
+        }));
 
         setAllNftUserOwn(_allNftUserOwns);
     };
@@ -171,23 +171,29 @@ const Staking = () => {
                 return setStakedNFTS([]);
             }
 
-            const _userStakedNfts = [];
+            const idsPromises = [];
+            _stakedNFTS.forEach((id) => {
+                idsPromises.push(_nftContractSigner.tokenURI(id));
+            });
 
-            for (const tokenId of _stakedNFTS) {
-                const id = +tokenId;
-                const tokenURI = await _nftContractSigner.tokenURI(id);
+            const tokenURIs = await Promise.all(idsPromises);
+
+            const dataPromises = [];
+            tokenURIs.forEach((tokenURI) => {
                 const uri = tokenURI.includes('...') ? '0' : tokenURI;
-                const data = uri === '0' ? {} : await fetch(uri).then((res) => res.json());
+                dataPromises.push(uri === '0' ? {} : axios.get(uri));
+            });
 
-                _userStakedNfts.push({
-                    customId: nanoid(5),
-                    id,
-                    uri,
-                    data,
-                    stakeStatus: true, // important
-                    stakedData: null,
-                });
-            }
+            const results = await Promise.all(dataPromises);
+
+            const _userStakedNfts = results.map(({ data }, idx) => ({
+                customId: nanoid(5),
+                id: _stakedNFTS[idx],
+                uri: tokenURIs[idx],
+                data,
+                stakeStatus: true,
+                stakedData: null,
+            }));
 
             setStakedNFTS(_userStakedNfts);
 
@@ -275,9 +281,13 @@ const Staking = () => {
             if (_isStakingActive) setIsStakingActive(true);
 
             const _nftTotalSupply = await _nftContractSigner.totalSupply();
-            const _stakeContractBalance = await _nftContractSigner.balanceOf(_stakingContractSigner.address);
-            setStakedPercentage( Math.round(_stakeContractBalance / _nftTotalSupply.toNumber() * 100) );
-            
+            const _stakeContractBalance = await _nftContractSigner.balanceOf(
+                _stakingContractSigner.address
+            );
+            setStakedPercentage(
+                Math.round((_stakeContractBalance / _nftTotalSupply.toNumber()) * 100)
+            );
+
             setStakingContractSigner(_stakingContractSigner);
             setTokenContractSigner(_tokenContractSigner);
             setNftContractSigner(_nftContractSigner);
@@ -590,7 +600,7 @@ const Staking = () => {
     const hqStats = () => (
         <div className={`_hq-stats ${activeTab !== 'vault' ? 'notvault' : ''}`}>
             <p className="title">HEADQUARTER STATS</p>
-            <p className="sub">Supply Staked: { stakedPercentage }% of all Goblins</p>
+            <p className="sub">Supply Staked: {stakedPercentage}% of all Goblins</p>
             <div className="stats-wrap">{_hqStatsData()}</div>
         </div>
     );
@@ -600,7 +610,7 @@ const Staking = () => {
         <div className="col-12">
             <div className="_hq-stats-mobile">
                 <p className="title">HEADQUARTER STATS</p>
-                <p className="sub">Supply Staked: { stakedPercentage }% of all Goblins</p>
+                <p className="sub">Supply Staked: {stakedPercentage}% of all Goblins</p>
                 <div className="stats-wrap">{_hqStatsData()}</div>
             </div>
         </div>
