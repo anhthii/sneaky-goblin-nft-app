@@ -28,8 +28,6 @@ import artistRod from '../../../../assets/imgs/artist-rod.svg';
 import artistProfile from '../../../../assets/imgs/artist-profile.png';
 import './MintNavigation.scss';
 
-const localEnv = getAllLocalEnv();
-
 const MintNavigation = () => {
     // States
     const [showMenu, setShowMenu] = useState(false);
