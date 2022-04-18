@@ -997,7 +997,7 @@ const Staking = () => {
                     </div>
                 ) : (
                     <div
-                        className={`row gx-3 mb-3 ${
+                        className={`row g-3 mb-3 ${
                             allNftUserOwns.length < 5 && type === 'unstaked'
                                 ? 'justify-content-center'
                                 : ''
