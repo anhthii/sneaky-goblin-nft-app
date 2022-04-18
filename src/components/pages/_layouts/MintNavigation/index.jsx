@@ -291,7 +291,6 @@ const MintNavigation = () => {
                         <br />
                         <br />
                         <br />
-                        <br />
                     </div>
                 </div>
                 {roadmapData.map((data) => (
