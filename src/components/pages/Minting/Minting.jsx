@@ -1,4 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useMediaQuery } from 'react-responsive';
 import { Helmet } from 'react-helmet-async';
 
@@ -101,7 +102,9 @@ const Mintng = () => {
                 setPricePerMint(price);
                 setUnitPrice(price);
                 setCurrentSaleType(saleType);
-                setMaxPerMint(saleType === SALE_TYPE.WHITELIST ? limitAmountPerWallet.toNumber() : maxAmountPerMint.toNumber());
+                setMaxPerMint(
+                    saleType === SALE_TYPE.WHITELIST ? +limitAmountPerWallet : +maxAmountPerMint
+                );
                 setLimitPerWallet(+limitAmountPerWallet);
                 if (saleType === SALE_TYPE.WHITELIST) setCurrentSaleStatusMsg('PRE-SALE');
                 if (saleType === SALE_TYPE.PUBLIC) setCurrentSaleStatusMsg('PUBLIC SALE');
@@ -177,7 +180,11 @@ const Mintng = () => {
                     setPricePerMint(ethers.utils.parseEther(priceInEther));
                     setUnitPrice(price);
                     setCurrentSaleType(saleType);
-                    setMaxPerMint(saleType === SALE_TYPE.WHITELIST ? limitAmountPerWallet.toNumber() : maxAmountPerMint.toNumber());
+                    setMaxPerMint(
+                        saleType === SALE_TYPE.WHITELIST
+                            ? limitAmountPerWallet.toNumber()
+                            : maxAmountPerMint.toNumber()
+                    );
                     setLimitPerWallet(limitAmountPerWallet.toNumber());
 
                     // Check how many tokens are left for current sale
@@ -487,12 +494,25 @@ const Mintng = () => {
                                             height={70}
                                         />
                                     </div>
-                                    <p style={{color: 'white', fontWeight:"bold", textAlign: "center", marginTop: "8px"}}>
-                                        Stake your Goblin(s) in the Goblinverse after minting. <a  style={{color: '#00e55d', fontWeight: "bold", textDecoration: "none"}}
-                                            href="https://goblinverse.sneakygoblins.co/invasion" 
-                                            target="_blank">
-                                             [Enter]
-                                        </a>
+                                    <p
+                                        style={{
+                                            color: 'white',
+                                            fontWeight: 'bold',
+                                            textAlign: 'center',
+                                            marginTop: '8px',
+                                        }}
+                                    >
+                                        Stake your Goblin(s) in the Goblinverse after minting.{' '}
+                                        <Link
+                                            to="/invasion"
+                                            style={{
+                                                color: '#00e55d',
+                                                fontWeight: 'bold',
+                                                textDecoration: 'none',
+                                            }}
+                                        >
+                                            [Enter]
+                                        </Link>
                                     </p>
                                 </div>
                             </div>
