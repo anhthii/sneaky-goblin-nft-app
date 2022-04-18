@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import gameBalance from '../../../assets/imgs/game-balance.svg';
 
 // Components
@@ -18,7 +18,6 @@ const VaultForm = ({ title, subtitle, balance, btnText, method, disabled = false
     const handleSubmit = async () => {
         try {
             await method(value);
-            setValue(balance);
         } catch (error) {
             setMsg(`Failed ${btnText}`, 'warning');
             if (process.env.NODE_ENV !== 'production') {
@@ -26,6 +25,10 @@ const VaultForm = ({ title, subtitle, balance, btnText, method, disabled = false
             }
         }
     };
+
+    useEffect(() => {
+        setValue(balance);
+    }, [balance]);
 
     return (
         <div className="col-12">
