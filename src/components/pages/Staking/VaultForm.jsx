@@ -45,10 +45,10 @@ const VaultForm = ({ title, subtitle, balance, btnText, method, disabled = false
                         <NumberFormat
                             className="form-control amount text-right"
                             aria-label="Amount (to the nearest dollar)"
-                            min={0}
-                            decimalScale={4}
                             value={value}
                             onValueChange={handleChange}
+                            decimalScale={4}
+                            allowNegative={false}
                             disabled={disabled}
                             thousandSeparator
                         />
