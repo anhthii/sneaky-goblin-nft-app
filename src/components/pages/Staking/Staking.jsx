@@ -1004,7 +1004,17 @@ const Staking = () => {
                             nfts.map((nft) => (
                                 <div key={nft.customId} className="col-auto _nft-cards">
                                     <div className="nft-img-wrap">
-                                        <img src={nft.data?.image} alt={nft.data?.name} />
+                                        {isRevealed ? (
+                                            <img src={nft.data?.image} alt={nft.data?.name} />
+                                        ) : (
+                                            <video controls={false} loop autoPlay muted>
+                                                <source
+                                                    src={nft.data?.animation_url}
+                                                    type="video/mp4"
+                                                />
+                                                <img src={nft.data?.image} alt={nft.data?.name} />
+                                            </video>
+                                        )}
                                     </div>
                                     <p className="yield">
                                         Name: <span>{nft.data?.name}</span>
@@ -1108,7 +1118,23 @@ const Staking = () => {
                                     <SwiperSlide key={nft.customId}>
                                         <div className="col-auto _nft-cards">
                                             <div className="nft-img-wrap">
-                                                <img src={nft.data?.image} alt={nft.data?.name} />
+                                                {isRevealed ? (
+                                                    <img
+                                                        src={nft.data?.image}
+                                                        alt={nft.data?.name}
+                                                    />
+                                                ) : (
+                                                    <video controls={false} loop autoPlay muted>
+                                                        <source
+                                                            src={nft.data?.animation_url}
+                                                            type="video/mp4"
+                                                        />
+                                                        <img
+                                                            src={nft.data?.image}
+                                                            alt={nft.data?.name}
+                                                        />
+                                                    </video>
+                                                )}
                                             </div>
                                             <p className="yield">
                                                 Name: <span>{nft.data?.name}</span>

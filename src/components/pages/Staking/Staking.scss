@@ -570,7 +570,8 @@
                                     margin: 0 auto;
                                     padding: 18px 18px 28px;
 
-                                    & img {
+                                    & img,
+                                    & video {
                                         width: 100%;
                                     }
                                 }
@@ -578,7 +579,7 @@
                                 & p {
                                     text-align: center;
                                     background: #141514;
-                                    width: auto;
+                                    width: 202px;
                                     font-family: 'Outfit';
                                     font-style: normal;
                                     font-weight: 400;
@@ -1118,6 +1119,7 @@
                                         padding: 18px 18px 28px;
                                     }
                                     & p {
+                                        width: 341px;
                                         font-size: 24px;
                                         margin: -9px auto 16px;
                                         padding-bottom: 20px;
@@ -1374,6 +1376,7 @@
                                         width: 100%;
                                     }
                                     & p {
+                                        width: 100%;
                                         font-size: 20px;
                                     }
                                     & .nft-btn {
@@ -1596,6 +1599,7 @@
                                         width: 100%;
                                     }
                                     & p {
+                                        width: 100%;
                                         font-size: 16px;
                                     }
                                     & .nft-btn {
@@ -1714,6 +1718,7 @@
                                         width: 100%;
                                     }
                                     & p {
+                                        width: 100%;
                                         font-size: 13px;
                                     }
                                 }
