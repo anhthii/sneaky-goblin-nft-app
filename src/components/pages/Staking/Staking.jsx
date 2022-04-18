@@ -481,9 +481,13 @@ const Staking = () => {
                         localEnv.nftStakingContract,
                         true
                     );
+                    setStakingBtnDisabled(true);
+                    setStakingBtnText('Approving...');
                     await tx.wait();
                 } catch (e) {
                     setMsg(e.data?.message ?? e.message, 'warning');
+                    setStakingBtnDisabled(false);
+                    setStakingBtnText('Approve Invaders');
                 } finally {
                     setIsApproving(false);
                 }
