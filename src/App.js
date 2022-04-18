@@ -28,7 +28,7 @@ function App() {
                         <Routes>
                             <Route path="/" element={<HomePage />} />
                             <Route path="/mint" element={<Minting />} />
-                            <Route path="/stake" element={<Staking />} />
+                            <Route path="/invasion" element={<Staking />} />
                             <Route path="*" element={<NotFound />} />
                         </Routes>
                     </Router>
