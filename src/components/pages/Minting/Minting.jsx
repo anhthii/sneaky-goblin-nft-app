@@ -189,9 +189,7 @@ const Mintng = () => {
                     }
 
                     // Set the number of tokens that a user can buy.
-                    let _numAllowedTokens = (
-                        await _mintingContractSigner.allowedTokenCount(address)
-                    );
+                    let _numAllowedTokens = await _mintingContractSigner.allowedTokenCount(address);
 
                     // Dirty workaround to avoid max uin256 coming in and overvflowing JS Number.
                     const maxInt = ethers.BigNumber.from((Number.MAX_SAFE_INTEGER - 1).toString());
@@ -348,6 +346,12 @@ const Mintng = () => {
                 setHasError(true);
                 setIsMinting(false);
                 setErrorMsg('🎉 Successfully minted!');
+                setMsg(
+                    `Successfully minted ${realDefValue} ${
+                        realDefValue === 1 ? 'token' : 'tokens'
+                    }`,
+                    'success'
+                );
                 setdefValueUI(1);
                 setRetrigger(!retrigger);
             }
