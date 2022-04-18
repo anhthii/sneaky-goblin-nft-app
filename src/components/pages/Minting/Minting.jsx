@@ -189,9 +189,17 @@ const Mintng = () => {
                     }
 
                     // Set the number of tokens that a user can buy.
-                    const _numAllowedTokens = (
+                    let _numAllowedTokens = (
                         await _mintingContractSigner.allowedTokenCount(address)
-                    ).toNumber();
+                    );
+
+                    // Dirty workaround to avoid max uin256 coming in and overvflowing JS Number.
+                    const maxInt = ethers.BigNumber.from((Number.MAX_SAFE_INTEGER - 1).toString());
+                    // console.log(Number.MAX_SAFE_INTEGER.toString(), maxInt);
+                    if (_numAllowedTokens.gte(maxInt)) {
+                        _numAllowedTokens = maxInt.toNumber();
+                    }
+
                     setAllowedBuyCount(_numAllowedTokens);
                     if (_numAllowedTokens === 0) {
                         setMintingActive(false);
