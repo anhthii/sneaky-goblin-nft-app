@@ -267,6 +267,7 @@ const Staking = () => {
                 setAllNftUserOwn([]);
                 setStakedNFTS([]);
                 setSelectedNFT([]);
+                setActiveSubTab('');
                 await getAllUserNFT();
                 await getStakedTokens();
             }, 500);
@@ -294,6 +295,7 @@ const Staking = () => {
                 setAllNftUserOwn([]);
                 setStakedNFTS([]);
                 setSelectedNFT([]);
+                setActiveSubTab('');
                 await getStakedTokens();
                 await getAllUserNFT();
             }, 500);
@@ -393,10 +395,19 @@ const Staking = () => {
 
     // Handlers >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     // This will set inline pages of Invasion tab
-    const invasionButtonsHandler = (tab) => {
-        if (allNftUserOwns.length < 1 && stakedNFTS.length < 1) return;
-        if (tab === 'unstake' && stakedNFTS.length < 1) return;
-        if (tab === 'stake' && allNftUserOwns.length < 1) return;
+    const invasionButtonsHandler = (tab) => () => {
+        if (allNftUserOwns.length < 1 && stakedNFTS.length < 1) {
+            setMsg('There is no available NFT', 'warning');
+            return;
+        }
+        if (tab === 'unstake' && stakedNFTS.length < 1) {
+            setMsg('There is no NFT available to unstake', 'warning');
+            return;
+        }
+        if (tab === 'stake' && allNftUserOwns.length < 1) {
+            setMsg('There is no NFT available to stake', 'warning');
+            return;
+        }
         setActiveSubTab(tab);
     };
 
@@ -809,9 +820,7 @@ const Staking = () => {
                                             <div className="row">
                                                 <div className="col-12 col-lg-6 stake">
                                                     <PBButton
-                                                        method={() =>
-                                                            invasionButtonsHandler('stake')
-                                                        }
+                                                        method={invasionButtonsHandler('stake')}
                                                         text="Stake"
                                                         font="Outfit"
                                                         textColor="black"
@@ -829,9 +838,7 @@ const Staking = () => {
                                                 </div>
                                                 <div className="col-12 col-lg-6 unstake">
                                                     <PBButton
-                                                        method={() =>
-                                                            invasionButtonsHandler('unstake')
-                                                        }
+                                                        method={invasionButtonsHandler('unstake')}
                                                         text="Unstake"
                                                         font="Outfit"
                                                         textColor="black"
@@ -990,7 +997,7 @@ const Staking = () => {
                     </div>
                 ) : (
                     <div
-                        className={`row gx-3 mb-3 ${
+                        className={`row g-3 mb-3 ${
                             allNftUserOwns.length < 5 && type === 'unstaked'
                                 ? 'justify-content-center'
                                 : ''
@@ -1004,7 +1011,17 @@ const Staking = () => {
                             nfts.map((nft) => (
                                 <div key={nft.customId} className="col-auto _nft-cards">
                                     <div className="nft-img-wrap">
-                                        <img src={nft.data?.image} alt={nft.data?.name} />
+                                        {isRevealed ? (
+                                            <img src={nft.data?.image} alt={nft.data?.name} />
+                                        ) : (
+                                            <video controls={false} loop autoPlay muted>
+                                                <source
+                                                    src={nft.data?.animation_url}
+                                                    type="video/mp4"
+                                                />
+                                                <img src={nft.data?.image} alt={nft.data?.name} />
+                                            </video>
+                                        )}
                                     </div>
                                     <p className="yield">
                                         Name: <span>{nft.data?.name}</span>
@@ -1108,7 +1125,23 @@ const Staking = () => {
                                     <SwiperSlide key={nft.customId}>
                                         <div className="col-auto _nft-cards">
                                             <div className="nft-img-wrap">
-                                                <img src={nft.data?.image} alt={nft.data?.name} />
+                                                {isRevealed ? (
+                                                    <img
+                                                        src={nft.data?.image}
+                                                        alt={nft.data?.name}
+                                                    />
+                                                ) : (
+                                                    <video controls={false} loop autoPlay muted>
+                                                        <source
+                                                            src={nft.data?.animation_url}
+                                                            type="video/mp4"
+                                                        />
+                                                        <img
+                                                            src={nft.data?.image}
+                                                            alt={nft.data?.name}
+                                                        />
+                                                    </video>
+                                                )}
                                             </div>
                                             <p className="yield">
                                                 Name: <span>{nft.data?.name}</span>
@@ -1216,6 +1249,7 @@ const Staking = () => {
                                 curve={3}
                                 height={70}
                                 width={144}
+                                method={invasionButtonsHandler('stake')}
                             />
                         </div>
                         <div className="col-12 col-lg-6 unstake">
@@ -1233,6 +1267,7 @@ const Staking = () => {
                                 curve={3}
                                 height={70}
                                 width={144}
+                                method={invasionButtonsHandler('unstake')}
                             />
                         </div>
                     </div>
