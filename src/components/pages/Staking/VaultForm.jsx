@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
+import NumberFormat from 'react-number-format';
 import gameBalance from '../../../assets/imgs/game-balance.svg';
 
 // Components
@@ -11,8 +12,8 @@ const VaultForm = ({ title, subtitle, balance, btnText, method, disabled = false
     const { setMsg } = useContext(MsgNetContext);
     const [value, setValue] = useState(balance);
 
-    const handleChange = (e) => {
-        setValue(e.target.value);
+    const handleChange = ({ value }) => {
+        setValue(value);
     };
 
     const handleSubmit = async () => {
@@ -41,14 +42,15 @@ const VaultForm = ({ title, subtitle, balance, btnText, method, disabled = false
                                 <img src={gameBalance} alt="" />
                             </div>
                         </span>
-                        <input
-                            type="number"
+                        <NumberFormat
                             className="form-control amount text-right"
                             aria-label="Amount (to the nearest dollar)"
                             min={0}
+                            decimalScale={4}
                             value={value}
-                            onChange={handleChange}
+                            onValueChange={handleChange}
                             disabled={disabled}
+                            thousandSeparator
                         />
                     </div>
                 </div>
