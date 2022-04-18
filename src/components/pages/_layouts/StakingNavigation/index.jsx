@@ -61,9 +61,9 @@ const StakingNavigation = () => {
 
                         <ul className="navbar-nav custom-nav right">
                             <li className="nav-item">
-                                <Link to="/" className="nav-link">
+                                <a href="https://sneakygoblins.co/" className="nav-link">
                                     Home
-                                </Link>
+                                </a>
                             </li>
                             <li className="nav-item">
                                 <Link to="/invasion" className="nav-link active">
