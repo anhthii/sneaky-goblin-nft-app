@@ -390,33 +390,33 @@ const MintNavigation = () => {
                             </li>
                         </ul>
 
-                        <Link to="/" className="navbar-brand d-none d-lg-block">
+                        <a href="https://sneakygoblins.co/" className="navbar-brand d-none d-lg-block">
                             <div className="logo-wrapper">
                                 <img src={sgLogo} alt="SneakyGoblins" />
                             </div>
                             {/* This is hidden visually, for SEO*/}
                             <h1 id="MainTextBrand">SneakyGoblins</h1>
-                        </Link>
+                        </a>
 
                         <ul className="navbar-nav custom-nav right">
                             <div className="spacer-last" />
                             <li className="nav-item">
-                                <a className="nav-link" href={socials.discord}>
+                                <a className="nav-link" target="_blank" href={socials.discord}>
                                     <img src={discordLogo} alt="" />
                                 </a>
                             </li>
                             <li className="nav-item">
-                                <a className="nav-link" href={socials.opensea}>
+                                <a className="nav-link" target="_blank" href={socials.opensea}>
                                     <img src={openseaLogo} alt="" />
                                 </a>
                             </li>
                             <li className="nav-item">
-                                <a className="nav-link" href={socials.insta}>
+                                <a className="nav-link" target="_blank" href={socials.insta}>
                                     <img src={instaLogo} alt="" />
                                 </a>
                             </li>
                             <li className="nav-item">
-                                <a className="nav-link" href={socials.twitter}>
+                                <a className="nav-link" target="_blank" href={socials.twitter}>
                                     <img src={twitterLogo} alt="" />
                                 </a>
                             </li>
