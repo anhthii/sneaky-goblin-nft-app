@@ -261,7 +261,7 @@ const Staking = () => {
         try {
             const tx = await stakingContractSigner.deposit(magicContractType, selectedNFT);
             setIsUpdatingData(true);
-            setStakingBtnText('Unstaking...');
+            setStakingBtnText('Staking...');
             await tx.wait();
             setTimeout(async () => {
                 setAllNftUserOwn([]);
@@ -288,7 +288,7 @@ const Staking = () => {
         try {
             const tx = await stakingContractSigner.withdraw(magicContractType, selectedNFT);
             setIsUpdatingData(true);
-            setUnstakingBtnText('Staking...');
+            setUnstakingBtnText('Unstaking...');
             await tx.wait();
             setTimeout(async () => {
                 setAllNftUserOwn([]);
