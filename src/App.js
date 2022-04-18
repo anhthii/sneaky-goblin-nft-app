@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate} from 'react-router-dom';
 import GoogleFontLoader from 'react-google-font-loader';
 import { HelmetProvider } from 'react-helmet-async';
 
@@ -26,7 +26,7 @@ function App() {
                     <Router>
                         <Navigation />
                         <Routes>
-                            <Route path="/" element={<HomePage />} />
+                            <Route path="/" element={<Navigate to="/invasion" />} />
                             <Route path="/mint" element={<Minting />} />
                             <Route path="/invasion" element={<Staking />} />
                             <Route path="*" element={<NotFound />} />
