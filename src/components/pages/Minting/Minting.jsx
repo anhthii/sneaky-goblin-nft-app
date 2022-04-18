@@ -12,7 +12,6 @@ import MintingRouter from '../../../data/abis/MintingRouter.json';
 import NFT from '../../../data/abis/NFT.json';
 import WHITELIST_SIGNATURES from '../../../data/whitelists/ROUND-1-WHITELIST.json';
 
-
 // Components
 import PBButton from '../../ui/PBButton/PBButton';
 import Floater from '../../ui/Floater/Floater';
@@ -36,13 +35,9 @@ const Mintng = () => {
         localEnv.mintingContract,
         MintingRouter.abi,
         infuraProvider
-    );    
-
-    const nftContract = new ethers.Contract(
-        localEnv.nftContract,
-        NFT.abi,
-        infuraProvider
     );
+
+    const nftContract = new ethers.Contract(localEnv.nftContract, NFT.abi, infuraProvider);
     // Responsive width
     const isTabletOrMobile = useMediaQuery({ query: '(max-width: 992px)' });
 
@@ -115,7 +110,7 @@ const Mintng = () => {
 
         // Get totalSupply (aka number of tokens that have been minted)
         nftContract.MAX_SUPPLY().then(function (maxSupply) {
-            setMaxSupply(maxSupply.toNumber())
+            setMaxSupply(maxSupply.toNumber());
         });
 
         // Get totalSupply (aka number of tokens that have been minted)
@@ -260,12 +255,12 @@ const Mintng = () => {
         }
     };
 
-    /** 
-      * USE THIS IN CASE OF DDOS ATTACK ON WHITELIST API
-      * 1. Uncomment the function.
-      * 2. Comment the getWhitelistSigHandler that gets signature from API.
-      * 3. MAKE SURE TO ADD THE CORRECT WHITELIST FILE TO '../../../data/whitelists/ROUND-1-WHITELIST.json'
-    ***/
+    /**
+     * USE THIS IN CASE OF DDOS ATTACK ON WHITELIST API
+     * 1. Uncomment the function.
+     * 2. Comment the getWhitelistSigHandler that gets signature from API.
+     * 3. MAKE SURE TO ADD THE CORRECT WHITELIST FILE TO '../../../data/whitelists/ROUND-1-WHITELIST.json'
+     ***/
     // const getWhitelistSigHandler = async (address) => {
     //     address = ethers.utils.getAddress(address);
     //     return WHITELIST_SIGNATURES[address] || null;

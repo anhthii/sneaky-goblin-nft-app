@@ -1,461 +1,456 @@
 ._minting-body {
-
-  & .sample-mint-btn {
-    border: 1px solid #5e5e5e;
-    background: #a276bf3b;
-    padding: 10px;
-    width: 100px;
-    border-radius: 3px;
-    font-weight: 500;
-    color: white;
-    letter-spacing: 2px;
-  }
-
-  & svg {
-    position: relative;
-    top: -1px;
-  }
-
-  & .sg-text-bg-logo-wrap {
-    z-index: 50;
-    width: 85%;
-    position: absolute;
-    top: 48%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    & img {
-      width: 100%;
-    }
-  }
-
-  & .sg-nft-bg-wrap {
-    position: relative;
-    z-index: 100;
-    width: 100%;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    & img {
-      width: 100%;
-    }
-  }
-
-  & .mint-box-wrapper {
-    z-index: 900;
-    margin: 0 auto;
-    padding: 54px;
-    border-radius: 25px;
-    height: 382px;
-    width: 708px;
-    background-color: #2a2d2aeb;
-    border: 2px solid #ffffff1f;
-    position: absolute;
-    top: 62%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-
-    & .mint-box-title {
-      font-family: 'Rubik-Dirt';
-      font-style: normal;
-      font-weight: 400;
-      font-size: 35px;
-      line-height: 30px;
-      text-transform: uppercase;
-      color: #ECECEC;
-    }
-    & .mint-box-remaining-data, & .mint-box-sub-sale, & .mint-box-sub-remaining {
-      font-family: 'Outfit';
-      font-style: normal;
-      font-weight: 600;
-      line-height: 28px;
-    }
-    & .mint-box-remaining-data {
-      font-size: 22px;
-      color: #FFFFFF;
-      text-align: right;
-    }
-    & .mint-box-sub-sale, & .mint-box-sub-remaining {
-      color: #9A9890;
-      font-size: 16px;
-      margin-top: -12px
-    }
-    & .mint-box-sub-remaining {
-      text-align: right;
+    & .sample-mint-btn {
+        border: 1px solid #5e5e5e;
+        background: #a276bf3b;
+        padding: 10px;
+        width: 100px;
+        border-radius: 3px;
+        font-weight: 500;
+        color: white;
+        letter-spacing: 2px;
     }
 
-    & .mint-button-wrapper {
-      margin-top: 25px;
-    }
-    & input {
-      border: none;
-      height: 68px;
-      background: none;
-      font-size: 1.8em;
-      color: white;
-      border: 2px solid white;
-      padding-left: 26px;
-      border-right: 0px;
-      width: 100%;
-      border-radius: 3px 0px 0px 3px;
-
-      &:focus {
-        outline: none;
-      }
-    }
-    & .input-max {
-      border: 2px solid white;
-      border-left: 0px;
-      height: 68px;
-      border-right: 0px;
-      color: rgba(154, 152, 144, 0.3);
-      text-align: center;
-      font-family: 'Outfit';
-      font-style: normal;
-      font-weight: 600;
-      font-size: 16px;
-      line-height: 20px;
-      text-transform: uppercase;
-      & span {
+    & svg {
         position: relative;
-        top: 21px;
-      }
+        top: -1px;
     }
-    & .input-eth {
-      border: 2px solid white;
-      height: 68px;
-      border-top-right-radius: 3px;
-      border-bottom-right-radius: 3px;
-      text-align: center;
-      font-family: 'Outfit';
-      font-style: normal;
-      font-weight: 600;
-      font-size: 22px;
-      line-height: 28px;
-      color: #FFFFFF;
-      & span {
+
+    & .sg-text-bg-logo-wrap {
+        z-index: 50;
+        width: 85%;
+        position: absolute;
+        top: 48%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        & img {
+            width: 100%;
+        }
+    }
+
+    & .sg-nft-bg-wrap {
         position: relative;
-        top: 17px;
-      }
+        z-index: 100;
+        width: 100%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        & img {
+            width: 100%;
+        }
     }
 
-    & .error-msg {
-      color: #6f6d67;
-      text-align: center;
-      margin-top: 10px;
-      font-size: .9em;
-    }
-  }
+    & .mint-box-wrapper {
+        z-index: 900;
+        margin: 0 auto;
+        padding: 54px;
+        border-radius: 25px;
+        height: 382px;
+        width: 708px;
+        background-color: #2a2d2aeb;
+        border: 2px solid #ffffff1f;
+        position: absolute;
+        top: 62%;
+        left: 50%;
+        transform: translate(-50%, -50%);
 
-  & #OverlayTopFade {
-    position: fixed;
-    top: 0px;
-    height: 370px;
-    width: 100%;
-    z-index: 80;
-    background: linear-gradient(180deg, rgb(20 21 20 / 0%) 0%, #141514 100%);
-    transform: rotate(-180deg);
-    left: 0;
-  }
-  & #OverlayMiddleFade {
-    position: fixed;
-    bottom: 0px;
-    height: 100vh;
-    width: 100%;
-    z-index: 400;
-    background: #141514a6;
-    left: 0px;
-  }
-  & #OverlayBottomFade {
-    position: fixed;
-    bottom: 0px;
-    height: 18vh;
-    width: 100%;
-    z-index: 300;
-    transform: rotate(180deg);
-    left: 0;
-    background: #141514;
-    box-shadow: 0 29px 80px 60px #141514;
-  }
+        & .mint-box-title {
+            font-family: 'Rubik-Dirt';
+            font-style: normal;
+            font-weight: 400;
+            font-size: 35px;
+            line-height: 30px;
+            text-transform: uppercase;
+            color: #ececec;
+        }
+        & .mint-box-remaining-data,
+        & .mint-box-sub-sale,
+        & .mint-box-sub-remaining {
+            font-family: 'Outfit';
+            font-style: normal;
+            font-weight: 600;
+            line-height: 28px;
+        }
+        & .mint-box-remaining-data {
+            font-size: 22px;
+            color: #ffffff;
+            text-align: right;
+        }
+        & .mint-box-sub-sale,
+        & .mint-box-sub-remaining {
+            color: #9a9890;
+            font-size: 16px;
+            margin-top: -12px;
+        }
+        & .mint-box-sub-remaining {
+            text-align: right;
+        }
+
+        & .mint-button-wrapper {
+            margin-top: 25px;
+        }
+        & input {
+            border: none;
+            height: 68px;
+            background: none;
+            font-size: 1.8em;
+            color: white;
+            border: 2px solid white;
+            padding-left: 26px;
+            border-right: 0px;
+            width: 100%;
+            border-radius: 3px 0px 0px 3px;
+
+            &:focus {
+                outline: none;
+            }
+        }
+        & .input-max {
+            border: 2px solid white;
+            border-left: 0px;
+            height: 68px;
+            border-right: 0px;
+            color: rgba(154, 152, 144, 0.3);
+            text-align: center;
+            font-family: 'Outfit';
+            font-style: normal;
+            font-weight: 600;
+            font-size: 16px;
+            line-height: 20px;
+            text-transform: uppercase;
+            & span {
+                position: relative;
+                top: 21px;
+            }
+        }
+        & .input-eth {
+            border: 2px solid white;
+            height: 68px;
+            border-top-right-radius: 3px;
+            border-bottom-right-radius: 3px;
+            text-align: center;
+            font-family: 'Outfit';
+            font-style: normal;
+            font-weight: 600;
+            font-size: 22px;
+            line-height: 28px;
+            color: #ffffff;
+            min-width: max-content;
+            & span {
+                position: relative;
+                top: 17px;
+            }
+        }
+
+        & .error-msg {
+            color: #6f6d67;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+    }
+
+    & #OverlayTopFade {
+        position: fixed;
+        top: 0px;
+        height: 370px;
+        width: 100%;
+        z-index: 80;
+        background: linear-gradient(180deg, rgb(20 21 20 / 0%) 0%, #141514 100%);
+        transform: rotate(-180deg);
+        left: 0;
+    }
+    & #OverlayMiddleFade {
+        position: fixed;
+        bottom: 0px;
+        height: 100vh;
+        width: 100%;
+        z-index: 400;
+        background: #141514a6;
+        left: 0px;
+    }
+    & #OverlayBottomFade {
+        position: fixed;
+        bottom: 0px;
+        height: 18vh;
+        width: 100%;
+        z-index: 300;
+        transform: rotate(180deg);
+        left: 0;
+        background: #141514;
+        box-shadow: 0 29px 80px 60px #141514;
+    }
 }
 
 /* if backdrop support: very transparent and blurred */
 @supports ((-webkit-backdrop-filter: none) or (backdrop-filter: none)) {
-  ._minting-body .mint-box-wrapper {
-    background-color: #3e413e61;
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-  }
+    ._minting-body .mint-box-wrapper {
+        background-color: #3e413e61;
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+    }
 }
 
 // Modal Error
 .minting-modal-error-wrap {
-  width: 100%;
-  height: 40vh;
-  padding: 60px;
-  text-align: center;
-  margin: 0 auto;
-  border: 2px solid #C50000;
-  border-radius: 7px;
+    width: 100%;
+    height: 40vh;
+    padding: 60px;
+    text-align: center;
+    margin: 0 auto;
+    border: 2px solid #c50000;
+    border-radius: 7px;
 
-  & h4 {
-    font-family: 'Rubik-Dirt';
-    font-style: normal;
-    font-weight: 400;
-    font-size: 2.8em;
-    line-height: 70px;
-    text-transform: uppercase;
-    color: #E6E6E6;
-    margin-bottom: 50px;
-  }
-  & p {
-    font-family: 'Outfit';
-    font-style: normal;
-    font-weight: 400;
-    font-size: 1.4em;
-    line-height: 60px;
-    color: #ECECEC;
-  }
+    & h4 {
+        font-family: 'Rubik-Dirt';
+        font-style: normal;
+        font-weight: 400;
+        font-size: 2.8em;
+        line-height: 70px;
+        text-transform: uppercase;
+        color: #e6e6e6;
+        margin-bottom: 50px;
+    }
+    & p {
+        font-family: 'Outfit';
+        font-style: normal;
+        font-weight: 400;
+        font-size: 1.4em;
+        line-height: 60px;
+        color: #ececec;
+    }
 }
 
 @media only screen and (max-width: 1399px) {
-  // Modal modification for minting page only
-  .modal-dialog._floater._mint {
-    max-width: 70%;
-  }
+    // Modal modification for minting page only
+    .modal-dialog._floater._mint {
+        max-width: 70%;
+    }
 }
 
 @media only screen and (max-width: 992px) {
-  .modal-dialog._floater._mint .modal-content {
-    margin-top: -130px !important;
-  }
-
-  ._minting-body {
-    & .sg-nft-bg-wrap {
-      top: 52%;
+    .modal-dialog._floater._mint .modal-content {
+        margin-top: -130px !important;
     }
 
-    & .mint-box-wrapper {
-      top: 40%;
-      height: 480px;
-      width: 90%;
-
-      & .sg-text-bg-logo-wrap {
-        display: none;
-      }
-
-      & #OverlayBottomFade {
-        height: 20vh;
-      }
-
-      & input {
-        height: 80px;
-        //font-size: 1.4em;
-        //padding-left: 16px;
-      }
-
-      & .input-max {
-        height: 80px;
-        & span {
-          top: 28px;
+    ._minting-body {
+        & .sg-nft-bg-wrap {
+            top: 52%;
         }
-      }
 
-      & .mint-box-remaining-data {
-        //font-size: .7em;
-      }
+        & .mint-box-wrapper {
+            top: 40%;
+            height: 480px;
+            width: 90%;
 
-      & .mint-box-sub-sale, & .mint-box-sub-remaining {
-        //font-size: .56em;
-      }
+            & .sg-text-bg-logo-wrap {
+                display: none;
+            }
 
-      & .mint-box-sub-sale,
-      & .mint-box-sub-remaining {
-        font-size: 1.2em;
-        margin-top: -16px;
-      }
+            & #OverlayBottomFade {
+                height: 20vh;
+            }
 
-      & .input-eth {
-        height: 80px;
-        & span {
-          top: 24px;
+            & input {
+                height: 80px;
+                //font-size: 1.4em;
+                //padding-left: 16px;
+            }
+
+            & .input-max {
+                height: 80px;
+                & span {
+                    top: 28px;
+                }
+            }
+
+            & .mint-box-remaining-data {
+                //font-size: .7em;
+            }
+
+            & .mint-box-sub-sale,
+            & .mint-box-sub-remaining {
+                //font-size: .56em;
+            }
+
+            & .mint-box-sub-sale,
+            & .mint-box-sub-remaining {
+                font-size: 1.2em;
+                margin-top: -16px;
+            }
+
+            & .input-eth {
+                height: 80px;
+                & span {
+                    top: 24px;
+                }
+            }
+
+            & .mint-box-title {
+                font-size: 2.8em;
+            }
+
+            & .mint-button-wrapper {
+                margin-top: 22px;
+                & ._pbButton button {
+                    height: 80px !important;
+                }
+            }
         }
-      }
-
-      & .mint-box-title {
-        font-size: 2.8em;
-      }
-
-      & .mint-button-wrapper {
-        margin-top: 22px;
-        & ._pbButton button {
-          height: 80px !important;
-        }
-      }
     }
-  }
 }
 
-
-
 @media only screen and (max-width: 665px) {
-  .modal-dialog._floater._mint .modal-content {
-    margin-top: 0px !important;
-  }
-
-  .minting-modal-error-wrap {
-    padding: 16px;
-  }
-
-  ._minting-body {
-    & .sg-nft-bg-wrap {
-      top: 52%;
+    .modal-dialog._floater._mint .modal-content {
+        margin-top: 0px !important;
     }
 
-    & .mint-box-wrapper {
-      top: 38%;
-      height: 320px;
-      padding: 22px;
-
-      & input {
-        height: 58px;
-        font-size: 1.4em;
-        padding-left: 16px;
-      }
-
-      & .input-max {
-        height: 58px;
-        & span {
-          top: 15px;
-          right: 7px;
-          font-size: .8em;
-        }
-      }
-
-      & .mint-box-remaining-data {
-        font-size: .7em;
-      }
-
-      & .mint-box-sub-sale, & .mint-box-sub-remaining {
-        font-size: .56em;
-      }
-
-      & .mint-box-sub-sale {
-        margin-top: -18px
-      }
-
-      & .mint-box-sub-remaining {
-        margin-top: -29px;
-      }
-
-      & .input-eth {
-        height: 58px;
-        & span {
-          top: 10px;
-          font-size: .75em;
-        }
-      }
-
-      & .mint-box-title {
-        font-size: 1.5em;
-        line-height: 24px;
-      }
-
-      & .mint-button-wrapper {
-        margin-top: 22px;
-        & ._pbButton button {
-          height: 58px !important;
-        }
-      }
-
-      & .mob-spec {
-        margin-top: -34px;
-      }
+    .minting-modal-error-wrap {
+        padding: 16px;
     }
-  }
+
+    ._minting-body {
+        & .sg-nft-bg-wrap {
+            top: 52%;
+        }
+
+        & .mint-box-wrapper {
+            top: 38%;
+            height: 320px;
+            padding: 22px;
+
+            & input {
+                height: 58px;
+                font-size: 1.4em;
+                padding-left: 16px;
+            }
+
+            & .input-max {
+                height: 58px;
+                & span {
+                    top: 15px;
+                    right: 7px;
+                    font-size: 0.8em;
+                }
+            }
+
+            & .mint-box-remaining-data {
+                font-size: 0.7em;
+            }
+
+            & .mint-box-sub-sale,
+            & .mint-box-sub-remaining {
+                font-size: 0.56em;
+            }
+
+            & .mint-box-sub-sale {
+                margin-top: -18px;
+            }
+
+            & .mint-box-sub-remaining {
+                margin-top: -29px;
+            }
+
+            & .input-eth {
+                height: 58px;
+                & span {
+                    top: 10px;
+                    font-size: 0.75em;
+                }
+            }
+
+            & .mint-box-title {
+                font-size: 1.5em;
+                line-height: 24px;
+            }
+
+            & .mint-button-wrapper {
+                margin-top: 22px;
+                & ._pbButton button {
+                    height: 58px !important;
+                }
+            }
+
+            & .mob-spec {
+                margin-top: -34px;
+            }
+        }
+    }
 }
 
 @media only screen and (max-width: 414px) {
-  ._minting-body {
-    & .sg-nft-bg-wrap {
-      top: 60%;
+    ._minting-body {
+        & .sg-nft-bg-wrap {
+            top: 60%;
+        }
+
+        & .mint-box-wrapper {
+            top: 44%;
+            padding: 18px;
+            height: 294px;
+
+            & input {
+                height: 58px;
+            }
+
+            & .input-max {
+                height: 58px;
+                & span {
+                    top: 16px;
+                    font-size: 0.9em;
+                }
+            }
+
+            & .input-eth {
+                height: 58px;
+                & span {
+                    top: 10px;
+                    font-size: 0.7em;
+                }
+            }
+
+            & .mint-box-sub-remaining {
+                font-size: 0.6em;
+            }
+
+            & .mint-box-title {
+                font-size: 1.5em;
+            }
+
+            & .mint-box-sub-sale {
+                margin-top: -20px;
+                font-size: 0.6em;
+            }
+
+            & .mint-button-wrapper {
+                & ._pbButton button {
+                    height: 58px !important;
+                }
+            }
+        }
     }
-
-    & .mint-box-wrapper {
-      top: 44%;
-      padding: 18px;
-      height: 294px;
-
-      & input {
-        height: 58px;
-      }
-
-      & .input-max {
-        height: 58px;
-        & span {
-          top: 16px;
-          font-size: .9em;
-        }
-      }
-
-      & .input-eth {
-        height: 58px;
-        & span {
-          top: 10px;
-          font-size: .7em;
-        }
-      }
-
-      & .mint-box-sub-remaining {
-        font-size: .6em;
-      }
-
-      & .mint-box-title {
-        font-size: 1.5em;
-      }
-
-      & .mint-box-sub-sale {
-        margin-top: -20px;
-        font-size: .6em;
-      }
-
-      & .mint-button-wrapper {
-        & ._pbButton button {
-          height: 58px !important;
-        }
-      }
-    }
-  }
 }
 
-
 @media only screen and (max-device-width: 992px) and (min-device-height: 891px) and (max-device-height: 926px) {
-  ._minting-body {
-    & #OverlayBottomFade {
-      height: 27vh;
+    ._minting-body {
+        & #OverlayBottomFade {
+            height: 27vh;
+        }
     }
-  }
 }
 
 @media only screen and (max-device-width: 992px) and (min-device-height: 700px) and (max-device-height: 890px) {
-  ._minting-body {
-    & #OverlayBottomFade {
-      height: 18vh;
+    ._minting-body {
+        & #OverlayBottomFade {
+            height: 18vh;
+        }
     }
-  }
 }
 
 @media only screen and (max-device-width: 992px) and (min-device-height: 200px) and (max-device-height: 699px) {
-  ._minting-body {
-    & #OverlayBottomFade {
-      height: 8vh;
+    ._minting-body {
+        & #OverlayBottomFade {
+            height: 8vh;
+        }
     }
-  }
 }
-
-
-
-
-
-
-
