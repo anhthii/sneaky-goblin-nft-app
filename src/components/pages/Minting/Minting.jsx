@@ -434,10 +434,10 @@ const Mintng = () => {
                                     </div>
                                     <div className="col-4">
                                         <p className="mint-box-remaining-data">
-                                            {totalSupply}/{maxSupply}
+                                            {maxSupply - totalSupply}/{maxSupply}
                                         </p>
                                         <p className="mint-box-sub-remaining d-md-block d-lg-none">
-                                            MINTED
+                                            REMAINING
                                         </p>
                                     </div>
                                 </div>
@@ -451,7 +451,7 @@ const Mintng = () => {
                                     </div>
                                     <div className="col-6">
                                         <p className="mint-box-sub-remaining d-none d-lg-block">
-                                            MINTED
+                                            REMAINING
                                         </p>
                                     </div>
                                 </div>

@@ -962,9 +962,9 @@ const Staking = () => {
                             {type === 'unstaked' ? (
                                 <div className="sub">
                                     {loadingStakedTokens ? (
-                                        <p>
+                                        <div>
                                             <Loader />
-                                        </p>
+                                        </div>
                                     ) : (
                                         <p>
                                             You don’t have any Goblins Reserve. Recruit more on{' '}
@@ -983,9 +983,9 @@ const Staking = () => {
                             ) : (
                                 <div className="sub">
                                     {loadingUserNFTs ? (
-                                        <p>
+                                        <div>
                                             <Loader />
-                                        </p>
+                                        </div>
                                     ) : (
                                         <p>
                                             You haven’t sent any Goblins to the invasion campaign
@@ -1203,9 +1203,9 @@ const Staking = () => {
             ) : (
                 <div className="sub">
                     {loadingStakedTokens ? (
-                        <p>
+                        <div>
                             <Loader />
-                        </p>
+                        </div>
                     ) : (
                         <p>
                             <span>Goblins Reserve (Unstaked):</span> You don’t have any Goblins
@@ -1222,9 +1222,9 @@ const Staking = () => {
                         </p>
                     )}
                     {loadingUserNFTs ? (
-                        <p>
+                        <div>
                             <Loader />
-                        </p>
+                        </div>
                     ) : (
                         <p>
                             <span>Goblins Invaders (Staked):</span> You haven’t sent any Goblins to
