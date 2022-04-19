@@ -23,6 +23,11 @@ import sgNftBg from '../../../assets/imgs/sg-bg-nfts.svg';
 import sgNftMobBg from '../../../assets/imgs/sg-mob-bg.svg';
 import sgLogoBg from '../../../assets/imgs/sg-bg-logo.svg';
 
+const SALE_TYPE = {
+    WHITELIST: 0,
+    PUBLIC: 1,
+};
+
 const Mintng = () => {
     const localEnv = getAllLocalEnv();
     const { ethers, address, provider, chainId, signer, isConnected, ethersProvider } =
@@ -43,11 +48,6 @@ const Mintng = () => {
     const isTabletOrMobile = useMediaQuery({ query: '(max-width: 992px)' });
 
     // States >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    // Constant States
-    const [SALE_TYPE] = useState({
-        WHITELIST: 0,
-        PUBLIC: 1,
-    });
     // UI states
     const [defValueUI, setdefValueUI] = useState(1);
     const [hasError, setHasError] = useState(false);
@@ -76,20 +76,38 @@ const Mintng = () => {
     // Modal states
     const [showModal, setShowModal] = useState(false);
 
+    const getMaxSupply = async () => {
+        const tokens = await nftContract.MAX_SUPPLY();
+        setMaxSupply(+tokens);
+    };
+
+    const getTotalSupply = async () => {
+        const tokens = await nftContract.totalSupply();
+        setTotalSupply(+tokens);
+
+        if (+tokens === maxSupply) {
+            setMintingActive(false);
+            setTokenStatusMsg('Sold out!');
+        }
+    };
+
+    const getTokensLeft = async () => {
+        const tokens = await mintingContract.tokensLeft();
+        setTokensLeft(+tokens);
+
+        if (+tokens === 0) {
+            setMintingActive(false);
+            setTokenStatusMsg('Sale round sold out!');
+        }
+    };
+
     // Effects >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     useEffect(() => {
         // Setting sale round details
-        mintingContract.saleRound().then(function (data) {
+        mintingContract.saleRound().then((data) => {
             if (!saleDetailsSetFlag) {
                 setSaleDetailsSetFlag(true);
-                const {
-                    price,
-                    enabled,
-                    saleType,
-                    totalAmount,
-                    maxAmountPerMint,
-                    limitAmountPerWallet,
-                } = data;
+                const { price, enabled, saleType, maxAmountPerMint, limitAmountPerWallet } = data;
 
                 if (!enabled) {
                     setMintingActive(false);
@@ -111,30 +129,9 @@ const Mintng = () => {
             }
         });
 
-        // Get totalSupply (aka number of tokens that have been minted)
-        nftContract.MAX_SUPPLY().then(function (maxSupply) {
-            setMaxSupply(maxSupply.toNumber());
-        });
-
-        // Get totalSupply (aka number of tokens that have been minted)
-        nftContract.totalSupply().then(function (totalSupply) {
-            const numTotalSupply = totalSupply.toNumber();
-            setTotalSupply(numTotalSupply);
-            if (numTotalSupply === maxSupply) {
-                setMintingActive(false);
-                setTokenStatusMsg('Sold out!');
-            }
-        });
-
-        // Check for sale round being sold out.
-        mintingContract.tokensLeft().then(function (tokensLeft) {
-            const numTokensLeft = tokensLeft.toNumber();
-            setTokensLeft(numTokensLeft);
-            if (numTokensLeft === 0) {
-                setMintingActive(false);
-                setTokenStatusMsg('Sale round sold out!');
-            }
-        });
+        getMaxSupply();
+        getTotalSupply();
+        getTokensLeft();
     }, []);
 
     useEffect(() => {
@@ -361,6 +358,9 @@ const Mintng = () => {
                 );
                 setdefValueUI(1);
                 setRetrigger(!retrigger);
+                await getMaxSupply();
+                await getTotalSupply();
+                await getTokensLeft();
             }
         } catch (e) {
             let _errMsg = 'Some errors were logged!';
@@ -434,10 +434,10 @@ const Mintng = () => {
                                     </div>
                                     <div className="col-4">
                                         <p className="mint-box-remaining-data">
-                                            {maxSupply - totalSupply}/{maxSupply}
+                                            {totalSupply}/{maxSupply}
                                         </p>
                                         <p className="mint-box-sub-remaining d-md-block d-lg-none">
-                                            REMAINING
+                                            MINTED
                                         </p>
                                     </div>
                                 </div>
@@ -451,7 +451,7 @@ const Mintng = () => {
                                     </div>
                                     <div className="col-6">
                                         <p className="mint-box-sub-remaining d-none d-lg-block">
-                                            REMAINING
+                                            MINTED
                                         </p>
                                     </div>
                                 </div>
