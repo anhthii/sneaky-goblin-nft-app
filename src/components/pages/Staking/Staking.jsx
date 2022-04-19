@@ -1017,7 +1017,7 @@ const Staking = () => {
                                         {isRevealed ? (
                                             <img src={nft.data?.image} alt={nft.data?.name} />
                                         ) : (
-                                            <video controls={false} loop autoPlay muted>
+                                            <video controls={false} loop autoPlay muted playsInline>
                                                 <source
                                                     src={nft.data?.animation_url}
                                                     type="video/mp4"
@@ -1134,7 +1134,13 @@ const Staking = () => {
                                                         alt={nft.data?.name}
                                                     />
                                                 ) : (
-                                                    <video controls={false} loop autoPlay muted>
+                                                    <video
+                                                        controls={false}
+                                                        loop
+                                                        autoPlay
+                                                        muted
+                                                        playsInline
+                                                    >
                                                         <source
                                                             src={nft.data?.animation_url}
                                                             type="video/mp4"
