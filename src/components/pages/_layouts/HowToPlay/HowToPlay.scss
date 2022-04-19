@@ -1,0 +1,35 @@
+dl._how-to-play {
+    color: #fefefe;
+    text-align: start;
+    font-size: 1.2em;
+    padding: 10px;
+
+    & dt {
+        font-size: 1.4em;
+        color: #00e55d;
+        &:not(:first-child) {
+            margin-top: 30px;
+        }
+    }
+
+    & dd {
+        table {
+            margin-top: 10px;
+
+            &,
+            th,
+            td {
+                border: 1px solid #fefefe;
+                padding: 5px 10px;
+            }
+
+            & thead th {
+                text-align: center;
+                color: #ff9548;
+            }
+            & tbody th {
+                color: #fff;
+            }
+        }
+    }
+}
