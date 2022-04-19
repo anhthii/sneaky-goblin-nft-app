@@ -10,7 +10,7 @@ const Navigation = () => {
 
     const whichNav = () => {
         if (pathname === '/mint') return <MintNavigation />;
-        if (pathname === '/stake') return <StakingNavigation />;
+        if (pathname === '/invasion') return <StakingNavigation />;
         return <span>.</span>;
     };
 

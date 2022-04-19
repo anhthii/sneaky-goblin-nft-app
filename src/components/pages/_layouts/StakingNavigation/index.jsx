@@ -44,7 +44,7 @@ const StakingNavigation = () => {
                     >
                         <ul className="navbar-nav">
                             <li className="nav-item">
-                                <div className="logo-wrapper" onClick={navigateTo("/")}>
+                                <div className="logo-wrapper" onClick={navigateTo('/')}>
                                     <img src={stakingLogo} alt="Goblinverse Invasion" />
                                     {/* This is hidden visually, for SEO*/}
                                     <h1 id="MainTextBrand">Goblinverse Invasion</h1>
@@ -61,12 +61,12 @@ const StakingNavigation = () => {
 
                         <ul className="navbar-nav custom-nav right">
                             <li className="nav-item">
-                                <Link to="/" className="nav-link">
+                                <a href="https://sneakygoblins.co/" className="nav-link">
                                     Home
-                                </Link>
+                                </a>
                             </li>
                             <li className="nav-item">
-                                <Link to="/stake" className="nav-link active">
+                                <Link to="/invasion" className="nav-link active">
                                     Staking Platform
                                 </Link>
                             </li>

@@ -176,7 +176,6 @@ const Staking = () => {
                 stakeStatus: false,
                 stakedData: null,
             }));
-
             setAllNftUserOwn(_allNftUserOwns);
         } catch (e) {
             console.error(e);
@@ -1028,7 +1027,7 @@ const Staking = () => {
                                         )}
                                     </div>
                                     <p className="yield">
-                                        Name: <span>{nft.data?.name}</span>
+                                        <span>{nft.data?.name}</span>
                                     </p>
                                     {nft.data?.attributes?.map((attr) => (
                                         <p className="yield" key={attr.trait_type}>
@@ -1148,7 +1147,7 @@ const Staking = () => {
                                                 )}
                                             </div>
                                             <p className="yield">
-                                                Name: <span>{nft.data?.name}</span>
+                                                <span>{nft.data?.name}</span>
                                             </p>
                                             {nft.data?.attributes?.map((attr) => (
                                                 <p className="yield" key={attr.trait_type}>
