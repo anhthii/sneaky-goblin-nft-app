@@ -620,6 +620,46 @@
     }
 }
 
+.withdrawn-modal-wrap {
+    width: 100%;
+    padding: 20px;
+    text-align: center;
+    margin: 0 auto;
+    border: 2px solid #00e75e;
+    border-radius: 7px;
+
+    @media only screen and (min-width: 576px) {
+        padding: 30px;
+    }
+
+    @media only screen and (min-width: 768px) {
+        padding: 40px;
+    }
+
+    @media only screen and (min-width: 992px) {
+        padding: 60px;
+    }
+
+    & h4 {
+        font-family: 'Rubik-Dirt';
+        font-style: normal;
+        font-weight: 400;
+        font-size: 2em;
+        line-height: 40px;
+        text-transform: uppercase;
+        color: #e6e6e6;
+        margin-bottom: 20px;
+    }
+    & p {
+        font-family: 'Outfit';
+        font-style: normal;
+        font-weight: 400;
+        font-size: 1.4em;
+        line-height: 40px;
+        color: #ececec;
+    }
+}
+
 // 1399px breakpoints --------------------------------------------------------------
 @media only screen and (max-width: 1399px) {
     ._staking-body {

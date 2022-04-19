@@ -9,6 +9,7 @@ import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import PBButton from '../../ui/PBButton/PBButton';
 import Connector from '../../core/Connector/Connector';
+import Floater from '../../ui/Floater/Floater';
 import VaultForm from './VaultForm';
 import Loader from '../../ui/Loader';
 
@@ -33,6 +34,9 @@ import './Staking.scss';
 import NFT from '../../../data/abis/NFT.json';
 import NFTStaking from '../../../data/abis/NFTStaking.json';
 import Token from '../../../data/abis/Token.json';
+
+// Constant
+const TOKEN_SYMOBL = '$xSERUM';
 
 const Staking = () => {
     const magicContractType = 0; // Signifies it's the contract of the first nft collection
@@ -63,11 +67,10 @@ const Staking = () => {
     const isLarge = useMediaQuery({ query: '(min-width: 992px)' });
 
     // States >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    // Constant
-    const [TOKEN_SYMOBL] = useState('$xSERUM');
     // UI States -----------
     const [activeTab, setActiveTab] = useState('');
     const [activeSubTab, setActiveSubTab] = useState('');
+    const [withdrawModal, setWithdrawModal] = useState({ show: false, amount: null });
     const [inGameBal, setInGameBal] = useState('0');
     const [ercBal, setErcBal] = useState('0');
     const [dailyYield, setDailyYield] = useState('0');
@@ -309,6 +312,10 @@ const Staking = () => {
         }
     };
 
+    const closeWithdrawModal = () => {
+        setWithdrawModal({ show: false, amount: null });
+    };
+
     // Effects >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     useEffect(() => {
         if (!isConnected) return;
@@ -537,6 +544,31 @@ const Staking = () => {
         }
     };
 
+    // Import $xSERUM to MetaMask
+    const importToMetamask = async () => {
+        if (!isMetamaskInstalled) return;
+        try {
+            const confirm = await window.ethereum.request({
+                method: 'wallet_watchAsset',
+                params: {
+                    type: 'ERC20',
+                    options: {
+                        address: localEnv.tokenContract,
+                        symbol: TOKEN_SYMOBL, // A ticker symbol or shorthand, up to 5 chars.
+                        decimals: 18, // The number of decimals in the token
+                        // image: localEnv.tokenImage, // A string url of the token logo
+                    },
+                },
+            });
+
+            if (confirm) {
+                closeWithdrawModal();
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     // Handles withdrawal for erc20, converts in-game to erc
     const onWithdrawInGame = async (amount) => {
         setWithdrawBtnDisabled(true);
@@ -547,6 +579,7 @@ const Staking = () => {
             setWithdrawBtnText('Pending...');
             await tx.wait();
             setWithdrawBtnText('Updating balances...');
+            setWithdrawModal({ show: true, amount });
             await getErcBal();
             await getInGameBal();
         } catch (e) {
@@ -1403,6 +1436,40 @@ const Staking = () => {
                         </div>
                     )}
                 </div>
+
+                <Floater
+                    show={withdrawModal.show}
+                    onHide={closeWithdrawModal}
+                    width={50}
+                    cn="_mint"
+                >
+                    <div className="container-fluid">
+                        <div className="withdrawn-modal-wrap">
+                            <h4>Success</h4>
+
+                            <p>
+                                You have successfully withdrawn {withdrawModal.amount}{' '}
+                                {TOKEN_SYMOBL}
+                            </p>
+
+                            <PBButton
+                                text={`Import ${TOKEN_SYMOBL} to MetaMask`}
+                                method={importToMetamask}
+                                textSize={1}
+                                textSpace={1}
+                                font="Outfit"
+                                textColor="black"
+                                textWeight={700}
+                                bgColor="#FFC748"
+                                hoverBgColor="#DEAD3F"
+                                lineColor="#FFC748"
+                                lineSize={2}
+                                hoverLineColor="#FFC748"
+                                curve={3}
+                            />
+                        </div>
+                    </div>
+                </Floater>
 
                 <div className="_body-overlay" />
             </div>
