@@ -1062,11 +1062,13 @@ const Staking = () => {
                                     <p className="yield">
                                         <span>{nft.data?.name}</span>
                                     </p>
-                                    {nft.data?.attributes?.map((attr) => (
-                                        <p className="yield" key={attr.trait_type}>
-                                            {attr.trait_type}: <span>{attr.value}</span>
-                                        </p>
-                                    ))}
+                                    {nft.data?.attributes?.map((attr) => {
+                                        if (attr.trait_type === "Level") {
+                                            return (<p className="yield" key={attr.trait_type}>
+                                                {attr.trait_type}: <span>{attr.value}</span>
+                                            </p>)
+                                        }
+                                    })}
 
                                     {btnText && (
                                         <div className="nft-btn">
