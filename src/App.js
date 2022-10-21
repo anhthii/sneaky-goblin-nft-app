@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate} from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import GoogleFontLoader from 'react-google-font-loader';
 import { HelmetProvider } from 'react-helmet-async';
 
